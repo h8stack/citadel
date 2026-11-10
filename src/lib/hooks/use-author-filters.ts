@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { LibraryAuthor } from "@/bindings";
 import { sortAuthors } from "@/lib/domain/author";
 import i18next from "@/lib/i18n";
+import { foldSearchText } from "@/lib/search-fold";
 
 export const AuthorSortOrder = {
 	nameAz: "name-asc",
@@ -61,11 +62,11 @@ export const useAuthorFilters = (
 		let result = [...authors];
 
 		if (searchTerm.trim()) {
-			const searchLower = searchTerm.toLowerCase();
+			const searchLower = foldSearchText(searchTerm.trim());
 			result = result.filter(
 				(author) =>
-					author.name.toLowerCase().includes(searchLower) ||
-					author.sortable_name?.toLowerCase().includes(searchLower),
+					foldSearchText(author.name).includes(searchLower) ||
+					foldSearchText(author.sortable_name ?? "").includes(searchLower),
 			);
 		}
 

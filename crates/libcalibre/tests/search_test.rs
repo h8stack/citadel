@@ -105,6 +105,43 @@ fn test_search_escapes_like_wildcards() {
 }
 
 #[test]
+fn test_search_vietnamese_with_and_without_diacritics() {
+    let (_temp, mut lib) = setup_with_library();
+
+    lib.add_book(book_with_authors("Sách Việt Nam", &["Nguyễn Du"]))
+        .unwrap();
+    lib.add_book(book_with_authors("Truyện Kiều", &["Đặng Thùy Trâm"]))
+        .unwrap();
+    lib.add_book(book_with_authors("An English Book", &["Jane Austen"]))
+        .unwrap();
+
+    // Unaccented queries match accented titles.
+    let results = lib.search_books("sach viet").unwrap();
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0].title, "Sách Việt Nam");
+
+    // Accented queries still match, and case is ignored.
+    assert_eq!(lib.search_books("SÁCH").unwrap().len(), 1);
+    assert_eq!(lib.search_books("sách").unwrap().len(), 1);
+
+    // Text pasted as decomposed (NFD) Unicode still matches.
+    assert_eq!(lib.search_books("Sa\u{0301}ch").unwrap().len(), 1);
+
+    // Vietnamese Đ folds to d.
+    assert_eq!(lib.search_books("dang thuy").unwrap().len(), 1);
+    assert_eq!(lib.search_books("Đặng").unwrap().len(), 1);
+
+    // Case/diacritic-insensitive author and series matches.
+    assert_eq!(lib.search_books("nguyen du").unwrap().len(), 1);
+    assert_eq!(lib.search_books("NGUYỄN").unwrap().len(), 1);
+    assert_eq!(lib.search_books("truyen kieu").unwrap().len(), 1);
+
+    // Non-matches stay empty.
+    assert!(lib.search_books("nguyen van").unwrap().is_empty());
+    assert!(lib.search_books("xyzzy").unwrap().is_empty());
+}
+
+#[test]
 fn test_search_empty_or_whitespace_query_returns_empty() {
     let (_temp, mut lib) = setup_with_library();
 

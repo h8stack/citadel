@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { SearchField } from "@/components/ui";
 import { useVirtualListRows } from "@/lib/hooks/use-virtual-list-rows";
+import { foldSearchText } from "@/lib/search-fold";
 import styles from "./NamedCountList.module.css";
 
 /** A named library entity with its linked-book count. */
@@ -50,8 +51,10 @@ export const NamedCountList = <T extends NamedCount>({
 	const { t } = useTranslation();
 
 	const filteredItems = useMemo(() => {
-		const lowerSearch = searchTerm.toLowerCase();
-		return items.filter(({ name }) => name.toLowerCase().includes(lowerSearch));
+		const lowerSearch = foldSearchText(searchTerm.trim());
+		return items.filter(({ name }) =>
+			foldSearchText(name).includes(lowerSearch),
+		);
 	}, [items, searchTerm]);
 
 	const countNoun = (count: number) => t(count === 1 ? one : many);

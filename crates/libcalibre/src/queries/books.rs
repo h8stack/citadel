@@ -136,7 +136,8 @@ pub(crate) struct AcquisitionCandidate {
 }
 
 fn like_pattern(text: &str) -> String {
-    let escaped = text
+    let folded = crate::search::fold_search_text(text);
+    let escaped = folded
         .replace('\\', "\\\\")
         .replace('%', "\\%")
         .replace('_', "\\_");
@@ -145,19 +146,21 @@ fn like_pattern(text: &str) -> String {
 
 /// WHERE clause shared by [`query_page`] and [`query_count`]. The text filter
 /// uses three `?` placeholders (title, author name, series name); all other
-/// filters interpolate plain integers.
+/// filters interpolate plain integers. Text comparisons run through
+/// `search_key()` on both sides so `sach` matches `Sách` and case/diacritics
+/// never matter.
 fn filter_where_sql(filters: &BookPageFilters) -> String {
     let mut clauses: Vec<String> = vec!["1=1".to_string()];
 
     if filters.text.is_some() {
         clauses.push(
-            "(books.title LIKE ? ESCAPE '\\' \
+            "(search_key(books.title) LIKE ? ESCAPE '\\' \
               OR EXISTS (SELECT 1 FROM books_authors_link bal \
                          JOIN authors a ON a.id = bal.author \
-                         WHERE bal.book = books.id AND a.name LIKE ? ESCAPE '\\') \
+                         WHERE bal.book = books.id AND search_key(a.name) LIKE ? ESCAPE '\\') \
               OR EXISTS (SELECT 1 FROM books_series_link bsl \
                          JOIN series s ON s.id = bsl.series \
-                         WHERE bsl.book = books.id AND s.name LIKE ? ESCAPE '\\'))"
+                         WHERE bsl.book = books.id AND search_key(s.name) LIKE ? ESCAPE '\\'))"
                 .to_string(),
         );
     }

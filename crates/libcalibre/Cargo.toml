@@ -20,6 +20,8 @@ uuid = { version = "1.6.1", features = [ "v4", "fast-rng", ] }
 sanitise-file-name = "1.0.0"
 # Same major as epub's, so the cover reader shares its archive code.
 zip = { version = "3", default-features = false, features = ["deflate"] }
+# Search folds diacritics (Vietnamese `sach` finds `Sách`) before comparing.
+unicode-normalization = "0.1"
 
 # Windows runners have no system libsqlite3 to link against. Enabling the
 # bundled build here covers every crate in a desktop/test build, since Cargo

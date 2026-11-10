@@ -12,6 +12,7 @@ pub mod persistence;
 mod queries;
 pub(crate) mod schema;
 pub mod schema_versions;
+pub mod search;
 pub mod sorting;
 pub mod stats;
 pub mod types;
