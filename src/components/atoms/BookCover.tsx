@@ -1,4 +1,5 @@
 import { type HTMLAttributes, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { CoverThumbnail, LibraryBook } from "@/bindings";
 import { formatAuthorList } from "@/lib/authors";
 import { resolveCoverLoad } from "@/lib/cover-load";
@@ -165,6 +166,7 @@ const BookCoverWithPlaceholder = ({
 	fluid: boolean;
 	interactive: boolean;
 } & HTMLAttributes<HTMLDivElement>) => {
+	const { t } = useTranslation();
 	const [pointerInside, setPointerInside] = useState(false);
 	const isHovering = interactive && pointerInside;
 
@@ -210,7 +212,7 @@ const BookCoverWithPlaceholder = ({
 				}}
 			>
 				<img
-					alt="App-provided placeholder cover."
+					alt={t("App-provided placeholder cover.")}
 					src={imgUrl}
 					style={{
 						width: "inherit",

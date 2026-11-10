@@ -5,6 +5,8 @@
  * updates however they run it (CDL-73). Each platform's updates adapter
  * maps its own answer into this, and says which actions it can perform.
  */
+import i18next from "@/lib/i18n";
+
 export type UpdateSubject = "app" | "server";
 
 export type SoftwareUpdateStatus =
@@ -89,7 +91,6 @@ const SERVER_DESCRIPTIONS: Partial<
 	checksOff: "Update checks are turned off on this server.",
 	notForThisBuild: "Nightly and development builds don't check for updates.",
 };
-
 /** What Settings → Software Update shows for a state. */
 export const softwareUpdateRowView = ({
 	subject,
@@ -105,17 +106,26 @@ export const softwareUpdateRowView = ({
 	if (subject === "server") {
 		if (status.kind === "available")
 			return {
-				label: `Citadel ${status.version} is available`,
-				description: `This server runs ${currentVersion}.`,
+				label: i18next.t("Citadel {{version}} is available", {
+					version: status.version,
+				}),
+				description: i18next.t("This server runs {{version}}.", {
+					version: currentVersion,
+				}),
 				controls: status.releaseNotesUrl
 					? [{ kind: "releaseNotes", url: status.releaseNotesUrl }]
 					: [],
 			};
 		if (status.kind === "upToDate")
-			return { label: `${current} is up to date`, controls: [] };
+			return {
+				label: i18next.t("Citadel {{version}} is up to date", {
+					version: currentVersion,
+				}),
+				controls: [],
+			};
 		const description = SERVER_DESCRIPTIONS[status.kind];
 		return description
-			? { label: current, description, controls: [] }
+			? { label: current, description: i18next.t(description), controls: [] }
 			: { label: current, controls: [] };
 	}
 	switch (status.kind) {
@@ -126,10 +136,17 @@ export const softwareUpdateRowView = ({
 		case "checking":
 			return { label: current, controls: check(true) };
 		case "upToDate":
-			return { label: `${current} is up to date`, controls: check(false) };
+			return {
+				label: i18next.t("Citadel {{version}} is up to date", {
+					version: currentVersion,
+				}),
+				controls: check(false),
+			};
 		case "available":
 			return {
-				label: `Update available: ${status.version}`,
+				label: i18next.t("Update available: {{version}}", {
+					version: status.version,
+				}),
 				controls: !actions.install
 					? []
 					: actions.installOnQuit
@@ -138,25 +155,31 @@ export const softwareUpdateRowView = ({
 			};
 		case "downloading":
 			return {
-				label: `Downloading ${status.version}…`,
+				label: i18next.t("Downloading {{version}}…", {
+					version: status.version,
+				}),
 				controls: [
 					{ kind: "progress", version: status.version, value: status.progress },
 				],
 			};
 		case "ready":
 			return {
-				label: `${status.version} installs when you quit`,
+				label: i18next.t("{{version}} installs when you quit", {
+					version: status.version,
+				}),
 				controls: actions.install ? [{ kind: "restartNow" }] : [],
 			};
 		case "checkFailed":
 			return {
-				label: "Couldn't check for updates",
+				label: i18next.t("Couldn't check for updates"),
 				detail: status.message,
 				controls: actions.check ? [{ kind: "retryCheck" }] : [],
 			};
 		case "updateFailed":
 			return {
-				label: `Couldn't install ${status.version}`,
+				label: i18next.t("Couldn't install {{version}}", {
+					version: status.version,
+				}),
 				detail: status.message,
 				controls: actions.install ? [{ kind: "retryUpdate" }] : [],
 			};

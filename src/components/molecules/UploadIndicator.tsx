@@ -1,3 +1,5 @@
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import { UploadProgressRing } from "@/components/atoms/UploadProgressRing";
 import { BookSparkleGlyph } from "@/components/icons/UploadGlyphs";
 import { Button, Tooltip } from "@/components/ui";
@@ -14,6 +16,21 @@ export interface UploadIndicatorProps {
 	onOpen: () => void;
 }
 
+const formatUploadingLabel = (
+	local: boolean | undefined,
+	count: number,
+	t: TFunction,
+): string => {
+	if (local) {
+		return count === 1
+			? t("Reading {{count}} book", { count })
+			: t("Reading {{count}} books", { count });
+	}
+	return count === 1
+		? t("Uploading {{count}} book", { count })
+		: t("Uploading {{count}} books", { count });
+};
+
 /**
  * Toolbar status for uploads carrying on while the sheet is closed: a
  * toolbar button like Add Book, showing upload progress or, once new books
@@ -26,13 +43,14 @@ export const UploadIndicator = ({
 	local = false,
 	onOpen,
 }: UploadIndicatorProps) => {
+	const { t } = useTranslation();
 	if (summary.active === 0 && summary.ready === 0) return null;
 	const uploading = summary.active > 0;
 	const deadline = !uploading ? countdown : undefined;
 	const urgent = deadline?.urgent === true;
 	const label = uploading
-		? `${local ? "Reading" : "Uploading"} ${summary.active} ${summary.active === 1 ? "book" : "books"}`
-		: `${summary.ready} to review`;
+		? formatUploadingLabel(local, summary.active, t)
+		: t("{{count}} to review", { count: summary.ready });
 	const button = (
 		<Button
 			className={styles.indicator}

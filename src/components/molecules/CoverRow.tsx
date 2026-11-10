@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { type CSSProperties, memo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { StagedCover } from "@/components/atoms/StagedCover";
 import { DEFAULT_COVER_ROW } from "@/lib/cover-row";
 import { useCoverRow } from "@/lib/hooks/use-cover-row";
@@ -42,6 +43,7 @@ export const CoverRow = ({
 	departing,
 	onSelect,
 }: CoverRowProps) => {
+	const { t } = useTranslation();
 	const stageRef = useRef<HTMLDivElement>(null);
 	const keys = items.map((item) => item.key);
 	useCoverRow({
@@ -74,8 +76,12 @@ export const CoverRow = ({
 					aria-current={position === index || undefined}
 					aria-label={
 						position === index
-							? `${titleOf(item)}, book ${position + 1} of ${items.length}`
-							: `Show ${titleOf(item)}`
+							? t("{{title}}, book {{position}} of {{total}}", {
+									title: titleOf(item),
+									position: position + 1,
+									total: items.length,
+								})
+							: t("Show {{title}}", { title: titleOf(item) })
 					}
 					onClick={() => onSelect(position)}
 				>

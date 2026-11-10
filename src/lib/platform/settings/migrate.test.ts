@@ -45,7 +45,7 @@ describe("migrateSettings", () => {
 			},
 		};
 		const result = migrateSettings(v1);
-		expect(result.settingsSchemaVersion).toBe(4);
+		expect(result.settingsSchemaVersion).toBe(CURRENT_SCHEMA_VERSION);
 		// K10plus added and enabled, inserted right after DNB.
 		expect(result.metadataProviders.configs.k10plus).toEqual({
 			enabled: true,
@@ -82,7 +82,7 @@ describe("migrateSettings", () => {
 			settingsSchemaVersion: 2,
 		};
 		const result = migrateSettings(v2);
-		expect(result.settingsSchemaVersion).toBe(4);
+		expect(result.settingsSchemaVersion).toBe(CURRENT_SCHEMA_VERSION);
 		expect(result.sharing).toEqual({
 			target: "localNetworks",
 			port: 9028,
@@ -103,7 +103,7 @@ describe("migrateSettings", () => {
 			},
 		};
 		const result = migrateSettings(v3);
-		expect(result.settingsSchemaVersion).toBe(4);
+		expect(result.settingsSchemaVersion).toBe(CURRENT_SCHEMA_VERSION);
 		expect(result.sharing.port).toBe(9028);
 		expect(result.sharing.authenticationEnabled).toBe(true);
 		expect(result.sharing.username).toBe("phil");
@@ -121,7 +121,28 @@ describe("migrateSettings", () => {
 			},
 		};
 		const result = migrateSettings(chosen);
-		expect(result.settingsSchemaVersion).toBe(4);
+		expect(result.settingsSchemaVersion).toBe(CURRENT_SCHEMA_VERSION);
 		expect(result.sharing.port).toBe(54321);
+	});
+
+	it("defaults the UI language to Vietnamese on a v4 install", () => {
+		const v4: SettingsSchema = {
+			...defaultSettings,
+			settingsSchemaVersion: 4,
+			language: undefined as unknown as SettingsSchema["language"],
+		};
+		const result = migrateSettings(v4);
+		expect(result.settingsSchemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+		expect(result.language).toBe("vi");
+	});
+
+	it("keeps a valid chosen language in v5", () => {
+		const v4: SettingsSchema = {
+			...defaultSettings,
+			settingsSchemaVersion: 4,
+			language: "en",
+		};
+		const result = migrateSettings(v4);
+		expect(result.language).toBe("en");
 	});
 });

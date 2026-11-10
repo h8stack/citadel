@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import i18next from "@/lib/i18n";
 import { deviceKeyUsage, passwordRuns } from "./device-keys";
 
 const at = (year: number, month: number, day: number, hour = 12): number =>
@@ -13,6 +14,10 @@ const key = (lastUsedAt: number | null) => ({
 
 describe("deviceKeyUsage", () => {
 	const now = new Date(2026, 10, 5, 9);
+
+	beforeEach(async () => {
+		await i18next.changeLanguage("en");
+	});
 
 	it("says a key that never signed in was never used", () => {
 		expect(deviceKeyUsage(key(null), now)).toMatch(/^Added .* · Never used$/);

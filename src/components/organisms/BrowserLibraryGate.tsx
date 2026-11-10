@@ -1,4 +1,6 @@
+import type { TFunction } from "i18next";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { AdministratorSetupForm } from "@/components/molecules/AdministratorSetupForm";
 import { SignInForm } from "@/components/molecules/SignInForm";
 import { Button, LoadingOverlay } from "@/components/ui";
@@ -36,27 +38,34 @@ const Notice = ({ title, message, children }: NoticeProps) => (
 const readerNotice = (
 	session: SessionInfo,
 	setup: SetupStatus,
+	t: TFunction,
 ): { title: string; message: string } => {
 	if (!setup.libraryConfigured)
 		return {
-			title: "Citadel isn’t set up yet",
-			message:
+			title: t("Citadel isn’t set up yet"),
+			message: t(
 				"This server has no library yet. Ask the administrator to choose one.",
+			),
 		};
 	if (!setup.libraryAvailable)
 		return {
-			title: "Your library isn’t available",
-			message:
+			title: t("Your library isn’t available"),
+			message: t(
 				"The server can’t reach its library right now. The administrator can see why and bring it back.",
+			),
 		};
 	return {
-		title: "No library to show",
-		message: `${session.user.username} doesn’t have access to this server’s library yet. Ask the person who runs Citadel to grant it.`,
+		title: t("No library to show"),
+		message: t(
+			"{{username}} doesn’t have access to this server’s library yet. Ask the person who runs Citadel to grant it.",
+			{ username: session.user.username },
+		),
 	};
 };
 
 /** Browser builds sign in before opening the serving origin's library. */
 export const BrowserLibraryGate = ({ children }: { children: ReactNode }) => {
+	const { t } = useTranslation();
 	const { state, refresh, signIn, createAdministrator, signOut, controls } =
 		useBrowserSession();
 	switch (state.status) {
@@ -64,23 +73,23 @@ export const BrowserLibraryGate = ({ children }: { children: ReactNode }) => {
 			return <Loading />;
 		case "unreachable":
 			return (
-				<Notice title="Couldn’t reach Citadel" message={state.error}>
-					<Button onClick={() => void refresh()}>Try again</Button>
+				<Notice title={t("Couldn’t reach Citadel")} message={state.error}>
+					<Button onClick={() => void refresh()}>{t("Try again")}</Button>
 				</Notice>
 			);
 		case "unwell":
 			return (
-				<Notice title="Citadel needs attention" message={state.error}>
-					<Button onClick={() => void refresh()}>Try again</Button>
+				<Notice title={t("Citadel needs attention")} message={state.error}>
+					<Button onClick={() => void refresh()}>{t("Try again")}</Button>
 				</Notice>
 			);
 		case "wrongAddress":
 			return (
 				<Notice
-					title="Citadel isn’t set up for this address"
+					title={t("Citadel isn’t set up for this address")}
 					message={state.error}
 				>
-					<Button onClick={() => void refresh()}>Try again</Button>
+					<Button onClick={() => void refresh()}>{t("Try again")}</Button>
 				</Notice>
 			);
 		case "needsAdministrator":
@@ -110,12 +119,12 @@ export const BrowserLibraryGate = ({ children }: { children: ReactNode }) => {
 			)
 				return <WebSetupFlow onFinished={() => void refresh()} />;
 			if (!session.libraryAccess || !controls) {
-				const notice = readerNotice(session, setup);
+				const notice = readerNotice(session, setup, t);
 				return (
 					<Notice title={notice.title} message={notice.message}>
-						<Button onClick={() => void refresh()}>Check again</Button>
+						<Button onClick={() => void refresh()}>{t("Check again")}</Button>
 						<Button variant="subtle" onClick={() => void signOut()}>
-							Sign out
+							{t("Sign out")}
 						</Button>
 					</Notice>
 				);
@@ -142,13 +151,16 @@ const SignedInLibrary = ({
 	onRetry,
 	children,
 }: SignedInLibraryProps) => {
+	const { t } = useTranslation();
 	const { state, error, retry } = useBrowserLibrary();
 	if (state === LibraryState.ready) return <>{children}</>;
 	if (state === LibraryState.error)
 		return (
 			<Notice
-				title="Couldn’t open your library"
-				message={error?.message ?? "The Citadel server could not be reached."}
+				title={t("Couldn’t open your library")}
+				message={
+					error?.message ?? t("The Citadel server could not be reached.")
+				}
 			>
 				<Button
 					onClick={async () => {
@@ -157,10 +169,10 @@ const SignedInLibrary = ({
 						await retry();
 					}}
 				>
-					Try again
+					{t("Try again")}
 				</Button>
 				<Button variant="subtle" onClick={() => void controls.signOut()}>
-					Sign out
+					{t("Sign out")}
 				</Button>
 			</Notice>
 		);

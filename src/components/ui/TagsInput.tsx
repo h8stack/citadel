@@ -8,6 +8,7 @@ import {
 	useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { useVisibleViewport } from "@/lib/hooks/use-visible-viewport";
 import {
 	type ListPlacement,
@@ -72,6 +73,7 @@ export const TagsInput = ({
 	className,
 	resetKey,
 }: TagsInputProps) => {
+	const { t } = useTranslation();
 	const fallbackId = useId();
 	const inputId = id ?? fallbackId;
 	const listboxId = `${inputId}-listbox`;
@@ -268,7 +270,7 @@ export const TagsInput = ({
 							<button
 								type="button"
 								className={styles.tokenRemove}
-								aria-label={`Remove ${token}`}
+								aria-label={t("Remove {{token}}", { token })}
 								// Keep focus in the input so blur does not commit
 								// a half-typed entry before this click lands.
 								onMouseDown={(event) => event.preventDefault()}

@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useId } from "react";
+import { useTranslation } from "react-i18next";
 import { ChevronDownGlyph } from "@/components/icons/UploadGlyphs";
 import { TagsInput, TextInput } from "@/components/ui";
 import { KNOWN_LANGUAGE_NAMES } from "@/lib/languages";
@@ -42,26 +43,27 @@ export const UploadReviewCard = ({
 	bookKey,
 	className,
 }: UploadReviewCardProps) => {
+	const { t } = useTranslation();
 	const change = (patch: Partial<ReviewForm>) => onChange?.(patch);
 	const leave = (field: ReviewField) => () => onLeaveField?.(field);
 	const detailsId = useId();
 	return (
 		<div className={clsx(styles.fields, className)}>
 			<TextInput
-				label="Title"
+				label={t("Title")}
 				value={form.title}
 				enterKeyHint="next"
 				autoComplete="off"
 				onChange={(event) => change({ title: event.target.value })}
 				onBlur={leave("title")}
-				error={errors.title}
+				error={errors.title ? t(errors.title) : undefined}
 			/>
 			<TagsInput
-				label="Authors"
+				label={t("Authors")}
 				value={form.authors}
 				onChange={(authors) => change({ authors })}
 				suggestions={authorSuggestions}
-				placeholder="Add author"
+				placeholder={t("Add author")}
 				resetKey={bookKey}
 			/>
 			<div className={styles.more} data-open={detailsOpen || undefined}>
@@ -75,12 +77,12 @@ export const UploadReviewCard = ({
 					onClick={onToggleDetails}
 				>
 					<span className={styles.disclosureLabel}>
-						{detailsOpen ? "More details" : "Add more details"}
+						{detailsOpen ? t("More details") : t("Add more details")}
 					</span>
 					{!detailsOpen && (
 						<span className={styles.disclosureHintBox}>
 							<span className={styles.disclosureHint}>
-								Publisher, language, tags, ISBN
+								{t("Publisher, language, tags, ISBN")}
 							</span>
 						</span>
 					)}
@@ -89,46 +91,48 @@ export const UploadReviewCard = ({
 				<div id={detailsId} className={styles.moreBody} inert={!detailsOpen}>
 					<div className={styles.moreFields}>
 						<TextInput
-							label="Publisher"
+							label={t("Publisher")}
 							value={form.publisher}
 							enterKeyHint="next"
 							autoComplete="off"
 							onChange={(event) => change({ publisher: event.target.value })}
 						/>
 						<TagsInput
-							label="Language"
+							label={t("Language")}
 							value={form.language ? [form.language] : []}
 							// One language: picking another replaces it.
 							onChange={(languages) =>
 								change({ language: languages.at(-1) ?? "" })
 							}
 							suggestions={KNOWN_LANGUAGE_NAMES}
-							placeholder={form.language ? "" : "Search languages"}
+							placeholder={form.language ? "" : t("Search languages")}
 							resetKey={bookKey}
 						/>
 						<TextInput
 							className={styles.date}
-							label="Published"
+							label={t("Published")}
 							type="date"
 							value={form.publicationDate}
 							onChange={(event) =>
 								change({ publicationDate: event.target.value })
 							}
 							onBlur={leave("publicationDate")}
-							error={errors.publicationDate}
+							error={
+								errors.publicationDate ? t(errors.publicationDate) : undefined
+							}
 						/>
 						<TagsInput
-							label="Tags"
+							label={t("Tags")}
 							value={form.tags}
 							onChange={(tags) => change({ tags })}
 							suggestions={tagSuggestions}
-							placeholder="Search or add tags"
+							placeholder={t("Search or add tags")}
 							resetKey={bookKey}
 						/>
 						<TextInput
-							label="ISBN"
+							label={t("ISBN")}
 							value={form.identifier}
-							placeholder="ISBN-10 or ISBN-13"
+							placeholder={t("ISBN-10 or ISBN-13")}
 							inputMode="text"
 							autoCapitalize="characters"
 							autoComplete="off"
@@ -136,7 +140,7 @@ export const UploadReviewCard = ({
 							enterKeyHint="done"
 							onChange={(event) => change({ identifier: event.target.value })}
 							onBlur={leave("identifier")}
-							error={errors.identifier}
+							error={errors.identifier ? t(errors.identifier) : undefined}
 						/>
 					</div>
 				</div>

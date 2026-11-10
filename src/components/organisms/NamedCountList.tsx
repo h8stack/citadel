@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import clsx from "clsx";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { SearchField } from "@/components/ui";
 import { useVirtualListRows } from "@/lib/hooks/use-virtual-list-rows";
@@ -46,20 +47,21 @@ export const NamedCountList = <T extends NamedCount>({
 }: NamedCountListProps<T>) => {
 	const [searchTerm, setSearchTerm] = useState("");
 	const [one, many] = noun;
+	const { t } = useTranslation();
 
 	const filteredItems = useMemo(() => {
 		const lowerSearch = searchTerm.toLowerCase();
 		return items.filter(({ name }) => name.toLowerCase().includes(lowerSearch));
 	}, [items, searchTerm]);
 
-	const countNoun = (count: number) => (count === 1 ? one : many);
+	const countNoun = (count: number) => t(count === 1 ? one : many);
 
 	return (
 		<div className={styles.page}>
 			<div className={styles.filterBar}>
 				<SearchField
-					placeholder={`Search ${many}`}
-					aria-label={`Search ${many}`}
+					placeholder={t("Search {{noun}}", { noun: t(many) })}
+					aria-label={t("Search {{noun}}", { noun: t(many) })}
 					value={searchTerm}
 					onChange={(event) => setSearchTerm(event.currentTarget.value)}
 					className={styles.searchInput}
@@ -70,9 +72,9 @@ export const NamedCountList = <T extends NamedCount>({
 				{...{ [`data-${kind}-header`]: "" }}
 				className={clsx(styles.headerRow, styles.grid)}
 			>
-				<span className={styles.columnLabel}>Name</span>
+				<span className={styles.columnLabel}>{t("Name")}</span>
 				<span className={clsx(styles.columnLabel, styles.columnLabelRight)}>
-					Books
+					{t("Books")}
 				</span>
 			</div>
 
@@ -81,8 +83,15 @@ export const NamedCountList = <T extends NamedCount>({
 			<div {...{ [`data-${kind}-footer`]: "" }} className={styles.footer}>
 				<span className={styles.footerText}>
 					{filteredItems.length === items.length
-						? `${items.length} ${countNoun(items.length)}`
-						: `${filteredItems.length} of ${items.length} ${countNoun(items.length)}`}
+						? t("{{total}} {{noun}}", {
+								total: items.length,
+								noun: countNoun(items.length),
+							})
+						: t("{{shown}} of {{total}} {{noun}}", {
+								shown: filteredItems.length,
+								total: items.length,
+								noun: countNoun(items.length),
+							})}
 				</span>
 			</div>
 		</div>
@@ -137,6 +146,7 @@ const NamedCountRow = ({
 	item: NamedCount;
 	search: BookListSearch;
 }) => {
+	const { t } = useTranslation();
 	return (
 		// The whole row links to the library filtered by this entry. The hover
 		// background, 40px min-height, and the overlay-link positioning live in
@@ -149,7 +159,7 @@ const NamedCountRow = ({
 				to="/"
 				search={search}
 				className="ctd-author-row-link"
-				aria-label={`Show books in ${item.name}`}
+				aria-label={t("Show books in {{name}}", { name: item.name })}
 			/>
 
 			<span className={styles.cellText}>{item.name}</span>

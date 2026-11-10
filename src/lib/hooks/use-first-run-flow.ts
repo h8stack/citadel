@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import i18next from "@/lib/i18n";
 import { libraryCatalog } from "@/lib/services/library-catalog";
 import type {
 	FlowEffect,
@@ -166,7 +167,7 @@ const runEffect = async (
 
 		case "open-adopt-picker": {
 			const path = await platformRef.current.dialogs.openDirectory({
-				title: "Select Calibre Library Folder",
+				title: i18next.t("Select Calibre Library Folder"),
 			});
 			send(
 				path === null
@@ -178,7 +179,7 @@ const runEffect = async (
 
 		case "open-create-target-picker": {
 			const path = await platformRef.current.dialogs.openDirectory({
-				title: "Choose a Folder for Your New Library",
+				title: i18next.t("Choose a Folder for Your New Library"),
 			});
 			send(
 				path === null

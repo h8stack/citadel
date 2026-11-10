@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { toast } from "@/components/ui";
 import { POPOVER_ATTRIBUTE } from "@/components/ui/popover-interop";
 import { useLibrarySelection } from "@/lib/hooks/use-library-selection";
@@ -72,6 +73,7 @@ const PlusIcon = () => (
  * not by this component.
  */
 export const LibraryPicker = () => {
+	const { t } = useTranslation();
 	const { libraries, activeLibrary, switchTo, adoptLibrary } =
 		useLibrarySelection();
 	const platform = usePlatform();
@@ -155,14 +157,14 @@ export const LibraryPicker = () => {
 		void (async () => {
 			try {
 				const path = await platform.dialogs.openDirectory({
-					title: "Select Calibre Library Folder",
+					title: t("Select Calibre Library Folder"),
 				});
 				if (path === null) return;
 				const result = await adoptLibrary(path);
 				if (!result.ok) {
 					toast.show({
 						id: INVALID_TOAST_ID,
-						title: "Not a Calibre library",
+						title: t("Not a Calibre library"),
 						message: result.message,
 					});
 				}
@@ -170,7 +172,7 @@ export const LibraryPicker = () => {
 				console.error("Adding a library failed:", error);
 				toast.show({
 					id: "library-picker-add-failed",
-					title: "Couldn't add that folder",
+					title: t("Couldn't add that folder"),
 					message: error instanceof Error ? error.message : String(error),
 				});
 			}
@@ -222,7 +224,7 @@ export const LibraryPicker = () => {
 			<div
 				ref={menuRef}
 				role="menu"
-				aria-label="Switch library"
+				aria-label={t("Switch library")}
 				className={styles.menu}
 				{...{ [POPOVER_ATTRIBUTE]: "" }}
 				style={{
@@ -264,7 +266,7 @@ export const LibraryPicker = () => {
 					<span className={styles.menuCheck}>
 						<PlusIcon />
 					</span>
-					<span className={styles.menuName}>Add Library…</span>
+					<span className={styles.menuName}>{t("Add Library…")}</span>
 				</button>
 			</div>,
 			document.body,
@@ -279,7 +281,9 @@ export const LibraryPicker = () => {
 				data-open={open || undefined}
 				aria-haspopup="menu"
 				aria-expanded={open}
-				aria-label={`Library: ${activeLibrary.displayName}`}
+				aria-label={t("Library: {{name}}", {
+					name: activeLibrary.displayName,
+				})}
 				onClick={() => setOpen((prev) => !prev)}
 				onKeyDown={(event) => {
 					if (event.key === "ArrowDown" && !open) {

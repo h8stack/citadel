@@ -1,6 +1,8 @@
 import clsx from "clsx";
+import type { TFunction } from "i18next";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { DetectionSource } from "@/bindings";
 import { Button, Spinner } from "@/components/ui";
 import type {
@@ -85,23 +87,26 @@ interface PathWellProps {
 	};
 }
 
-const PathWell = ({ path, home, bad = false, change }: PathWellProps) => (
-	<div className={clsx(styles.well, bad && styles.wellBad)}>
-		<FolderGlyph />
-		<span className={styles.pathText}>{abbreviateHomePath(path, home)}</span>
-		{change && (
-			<Button
-				variant="subtle"
-				className={styles.wellChange}
-				disabled={change.disabled}
-				data-autofocus={change.autoFocus ? "true" : undefined}
-				onClick={change.onClick}
-			>
-				Change…
-			</Button>
-		)}
-	</div>
-);
+const PathWell = ({ path, home, bad = false, change }: PathWellProps) => {
+	const { t } = useTranslation();
+	return (
+		<div className={clsx(styles.well, bad && styles.wellBad)}>
+			<FolderGlyph />
+			<span className={styles.pathText}>{abbreviateHomePath(path, home)}</span>
+			{change && (
+				<Button
+					variant="subtle"
+					className={styles.wellChange}
+					disabled={change.disabled}
+					data-autofocus={change.autoFocus ? "true" : undefined}
+					onClick={change.onClick}
+				>
+					{t("Change…")}
+				</Button>
+			)}
+		</div>
+	);
+};
 
 /* ------------------------------ card views ------------------------------ */
 
@@ -126,18 +131,19 @@ const FoundView = ({
 	onPickDifferent,
 	onStartNew,
 }: FoundViewProps) => {
+	const { t } = useTranslation();
 	const inert = busy || disabled;
 	return (
 		<>
 			<div className={styles.mark} aria-hidden="true">
 				<ShelfMark />
 			</div>
-			<h1 className={styles.title}>Found your Calibre library</h1>
+			<h1 className={styles.title}>{t("Found your Calibre library")}</h1>
 			<PathWell path={path} home={home} />
 			<p className={styles.src}>
 				{source === "calibre-config"
-					? "Via your Calibre settings."
-					: "At Calibre’s default location."}
+					? t("Via your Calibre settings.")
+					: t("At Calibre’s default location.")}
 			</p>
 			<div className={styles.actions}>
 				<Button
@@ -147,7 +153,7 @@ const FoundView = ({
 					data-autofocus="true"
 					onClick={onUse}
 				>
-					{busy ? <BusyLabel text="Opening…" /> : "Use This Library"}
+					{busy ? <BusyLabel text={t("Opening…")} /> : t("Use This Library")}
 				</Button>
 				<div className={styles.escapes}>
 					<Button
@@ -156,7 +162,7 @@ const FoundView = ({
 						disabled={inert}
 						onClick={onPickDifferent}
 					>
-						Choose a Different Folder…
+						{t("Choose a Different Folder…")}
 					</Button>
 					<Button
 						variant="subtle"
@@ -164,7 +170,7 @@ const FoundView = ({
 						disabled={inert}
 						onClick={onStartNew}
 					>
-						Start a New Library…
+						{t("Start a New Library…")}
 					</Button>
 				</div>
 			</div>
@@ -180,16 +186,19 @@ const ValidatingView = ({
 	path: string;
 	home: string | null;
 	onBack: () => void;
-}) => (
-	<>
-		<BackButton onClick={onBack} autoFocus />
-		<h1 className={styles.title}>Open your Calibre library</h1>
-		<PathWell path={path} home={home} />
-		<p className={clsx(styles.src, styles.srcChecking)}>
-			<Spinner size={12} /> Checking folder…
-		</p>
-	</>
-);
+}) => {
+	const { t } = useTranslation();
+	return (
+		<>
+			<BackButton onClick={onBack} autoFocus />
+			<h1 className={styles.title}>{t("Open your Calibre library")}</h1>
+			<PathWell path={path} home={home} />
+			<p className={clsx(styles.src, styles.srcChecking)}>
+				<Spinner size={12} /> {t("Checking folder…")}
+			</p>
+		</>
+	);
+};
 
 interface InvalidViewProps {
 	path: string;
@@ -205,33 +214,36 @@ const InvalidView = ({
 	onPickDifferent,
 	onCreateHere,
 	onBack,
-}: InvalidViewProps) => (
-	<>
-		<BackButton onClick={onBack} />
-		<h1 className={styles.title}>That folder isn’t a library</h1>
-		<PathWell path={path} home={home} bad />
-		<ErrLine text={ADOPT_INVALID_ERROR} />
-		<div className={styles.actions}>
-			<Button
-				variant="primary"
-				fullWidth
-				data-autofocus="true"
-				onClick={onPickDifferent}
-			>
-				Choose a Different Folder…
-			</Button>
-			<div className={styles.crossover}>
+}: InvalidViewProps) => {
+	const { t } = useTranslation();
+	return (
+		<>
+			<BackButton onClick={onBack} />
+			<h1 className={styles.title}>{t("That folder isn’t a library")}</h1>
+			<PathWell path={path} home={home} bad />
+			<ErrLine text={t(ADOPT_INVALID_ERROR)} />
+			<div className={styles.actions}>
 				<Button
-					variant="subtle"
-					className={styles.escapeBtn}
-					onClick={onCreateHere}
+					variant="primary"
+					fullWidth
+					data-autofocus="true"
+					onClick={onPickDifferent}
 				>
-					Start a New Library Here
+					{t("Choose a Different Folder…")}
 				</Button>
+				<div className={styles.crossover}>
+					<Button
+						variant="subtle"
+						className={styles.escapeBtn}
+						onClick={onCreateHere}
+					>
+						{t("Start a New Library Here")}
+					</Button>
+				</div>
 			</div>
-		</div>
-	</>
-);
+		</>
+	);
+};
 
 interface CreateViewProps {
 	path: string | null;
@@ -261,11 +273,12 @@ const CreateView = ({
 	onCommit,
 	onOpenInstead,
 }: CreateViewProps) => {
+	const { t } = useTranslation();
 	const inert = busy || frozen || openInsteadBusy;
 	return (
 		<>
 			<BackButton onClick={onBack} disabled={inert} />
-			<h1 className={styles.title}>New library</h1>
+			<h1 className={styles.title}>{t("New library")}</h1>
 			<PathWell
 				path={path ?? ""}
 				home={home}
@@ -276,12 +289,20 @@ const CreateView = ({
 					autoFocus: error?.code === "folder-not-empty",
 				}}
 			/>
-			{error !== null && <ErrLine text={error.message} />}
+			{error !== null && (
+				<ErrLine
+					text={
+						error.code === "create-failed" ? error.message : t(error.message)
+					}
+				/>
+			)}
 			{error === null && (
 				<p className={styles.helper}>
 					{isDefault
-						? "Citadel creates this folder. Books you import are copied into it."
-						: "Books you import are copied into this folder."}
+						? t(
+								"Citadel creates this folder. Books you import are copied into it.",
+							)
+						: t("Books you import are copied into this folder.")}
 				</p>
 			)}
 			<div className={styles.actions}>
@@ -292,7 +313,7 @@ const CreateView = ({
 					data-autofocus={error === null ? "true" : undefined}
 					onClick={onCommit}
 				>
-					{busy ? <BusyLabel text="Creating…" /> : "Create Library"}
+					{busy ? <BusyLabel text={t("Creating…")} /> : t("Create Library")}
 				</Button>
 				{error?.code === "already-a-library" && (
 					<div className={styles.crossover}>
@@ -304,9 +325,9 @@ const CreateView = ({
 							onClick={onOpenInstead}
 						>
 							{openInsteadBusy ? (
-								<BusyLabel text="Opening…" />
+								<BusyLabel text={t("Opening…")} />
 							) : (
-								"Open It Instead"
+								t("Open It Instead")
 							)}
 						</Button>
 					</div>
@@ -332,32 +353,37 @@ const CloudWarnView = ({
 	busy,
 	onCancel,
 	onContinue,
-}: CloudWarnViewProps) => (
-	<>
-		<div className={styles.mark} aria-hidden="true">
-			<CloudMark />
-		</div>
-		<h1 className={styles.title}>This folder is synced</h1>
-		<PathWell path={path} home={home} />
-		<p className={styles.lede} style={{ marginTop: 10 }}>
-			{provider} syncs this folder, and a sync while the library is open can
-			conflict with its database.
-		</p>
-		<div className={styles.rowActions}>
-			<Button variant="default" disabled={busy} onClick={onCancel}>
-				Cancel
-			</Button>
-			<Button
-				variant="primary"
-				data-autofocus="true"
-				disabled={busy}
-				onClick={onContinue}
-			>
-				{busy ? <BusyLabel text="Opening…" /> : "Continue"}
-			</Button>
-		</div>
-	</>
-);
+}: CloudWarnViewProps) => {
+	const { t } = useTranslation();
+	return (
+		<>
+			<div className={styles.mark} aria-hidden="true">
+				<CloudMark />
+			</div>
+			<h1 className={styles.title}>{t("This folder is synced")}</h1>
+			<PathWell path={path} home={home} />
+			<p className={styles.lede} style={{ marginTop: 10 }}>
+				{t(
+					"{{provider}} syncs this folder, and a sync while the library is open can conflict with its database.",
+					{ provider },
+				)}
+			</p>
+			<div className={styles.rowActions}>
+				<Button variant="default" disabled={busy} onClick={onCancel}>
+					{t("Cancel")}
+				</Button>
+				<Button
+					variant="primary"
+					data-autofocus="true"
+					disabled={busy}
+					onClick={onContinue}
+				>
+					{busy ? <BusyLabel text={t("Opening…")} /> : t("Continue")}
+				</Button>
+			</div>
+		</>
+	);
+};
 
 const STAGE_LABELS = [
 	"Opening library",
@@ -372,14 +398,15 @@ const OpeningView = ({
 	stage: 0 | 1 | 2;
 	announce: (text: string) => void;
 }) => {
+	const { t } = useTranslation();
 	useEffect(() => {
-		announce(`${STAGE_LABELS[stage]}…`);
-	}, [stage, announce]);
+		announce(`${t(STAGE_LABELS[stage])}…`);
+	}, [stage, announce, t]);
 
 	return (
 		<>
 			<h1 className={clsx(styles.title, styles.titleSm)}>
-				Opening your library
+				{t("Opening your library")}
 			</h1>
 			<ol className={styles.stages}>
 				{STAGE_LABELS.map((label, index) => (
@@ -400,7 +427,7 @@ const OpeningView = ({
 								<span className={styles.stageDot} />
 							)}
 						</span>
-						{label}
+						{t(label)}
 					</li>
 				))}
 			</ol>
@@ -427,6 +454,7 @@ const BrokenView = ({
 	onPickDifferent,
 	onStartNew,
 }: BrokenViewProps) => {
+	const { t } = useTranslation();
 	const retryRef = useRef<HTMLButtonElement>(null);
 	const inert = retry === "checking" || disabled;
 
@@ -440,11 +468,12 @@ const BrokenView = ({
 
 	return (
 		<>
-			<h1 className={styles.title}>Your library isn’t reachable</h1>
+			<h1 className={styles.title}>{t("Your library isn’t reachable")}</h1>
 			<PathWell path={path} home={home} bad />
 			<p className={styles.helper}>
-				Citadel couldn’t open the library at this path. If it lives on an
-				external drive or a network share, reconnect it, then retry.
+				{t(
+					"Citadel couldn’t open the library at this path. If it lives on an external drive or a network share, reconnect it, then retry.",
+				)}
 			</p>
 			<div className={styles.actions}>
 				<Button
@@ -455,11 +484,15 @@ const BrokenView = ({
 					data-autofocus="true"
 					onClick={onRetry}
 				>
-					{retry === "checking" ? <BusyLabel text="Checking…" /> : "Retry"}
+					{retry === "checking" ? (
+						<BusyLabel text={t("Checking…")} />
+					) : (
+						t("Retry")
+					)}
 				</Button>
 			</div>
 			{retry === "failed" && (
-				<div className={styles.retryNote}>Still not reachable.</div>
+				<div className={styles.retryNote}>{t("Still not reachable.")}</div>
 			)}
 			<div className={styles.divider} />
 			<div className={clsx(styles.escapes, styles.escapesAfterDivider)}>
@@ -469,7 +502,7 @@ const BrokenView = ({
 					disabled={inert}
 					onClick={onPickDifferent}
 				>
-					Open a Different Library…
+					{t("Open a Different Library…")}
 				</Button>
 				<Button
 					variant="subtle"
@@ -477,7 +510,7 @@ const BrokenView = ({
 					disabled={inert}
 					onClick={onStartNew}
 				>
-					Start a New Library…
+					{t("Start a New Library…")}
 				</Button>
 			</div>
 		</>
@@ -499,13 +532,14 @@ const resolveView = (
 	home: string | null,
 	announce: (text: string) => void,
 	reduced: boolean,
+	t: TFunction,
 ): ResolvedView | null => {
 	const { step, detection, brokenPath } = snapshot;
 
 	const foundView = (busy: boolean, disabled: boolean): ResolvedView | null =>
 		detection && {
 			key: "found",
-			label: "Found your Calibre library",
+			label: t("Found your Calibre library"),
 			hasBack: false,
 			node: (
 				<FoundView
@@ -523,7 +557,7 @@ const resolveView = (
 
 	const chooserView = (disabled: boolean): ResolvedView => ({
 		key: "chooser",
-		label: "Set up your library",
+		label: t("Set up your library"),
 		hasBack: false,
 		node: (
 			<ChooserView
@@ -539,7 +573,7 @@ const resolveView = (
 		disabled: boolean,
 	): ResolvedView => ({
 		key: "broken",
-		label: "Your library isn’t reachable",
+		label: t("Your library isn’t reachable"),
 		hasBack: false,
 		node: (
 			<BrokenView
@@ -575,7 +609,7 @@ const resolveView = (
 		openInsteadBusy: boolean;
 	}): ResolvedView => ({
 		key: `create:${props.error?.code ?? "ok"}`,
-		label: "New library",
+		label: t("New library"),
 		hasBack: true,
 		node: (
 			<CreateView
@@ -622,7 +656,7 @@ const resolveView = (
 			if (!step.slow) return frozenRoot(step.root);
 			return {
 				key: "validating",
-				label: "Checking folder",
+				label: t("Checking folder"),
 				hasBack: true,
 				node: (
 					<ValidatingView
@@ -636,7 +670,7 @@ const resolveView = (
 		case "adopt-invalid":
 			return {
 				key: "adopt-invalid",
-				label: "That folder isn’t a library",
+				label: t("That folder isn’t a library"),
 				hasBack: true,
 				node: (
 					<InvalidView
@@ -685,7 +719,7 @@ const resolveView = (
 		case "cloud-warn":
 			return {
 				key: "cloud",
-				label: "This folder is synced",
+				label: t("This folder is synced"),
 				hasBack: false,
 				node: (
 					<CloudWarnView
@@ -703,7 +737,7 @@ const resolveView = (
 			if (step.phase === "staged") {
 				return {
 					key: "opening",
-					label: "Opening your library",
+					label: t("Opening your library"),
 					hasBack: false,
 					node: <OpeningView stage={step.stage} announce={announce} />,
 				};
@@ -722,12 +756,12 @@ const resolveView = (
 					// still and only Continue morphs into the spinner.
 					return {
 						key: "cloud",
-						label: "This folder is synced",
+						label: t("This folder is synced"),
 						hasBack: false,
 						node: (
 							<CloudWarnView
 								path={step.path}
-								provider={step.provider ?? "A cloud service"}
+								provider={step.provider ?? t("A cloud service")}
 								home={home}
 								busy={true}
 								onCancel={() => {}}
@@ -743,7 +777,7 @@ const resolveView = (
 		case "reveal":
 			return {
 				key: "reveal",
-				label: "Your library is ready",
+				label: t("Your library is ready"),
 				hasBack: false,
 				node: (
 					<RevealView
@@ -777,6 +811,7 @@ const FirstRunOverlay = ({
 	send,
 	onFinished,
 }: FirstRunOverlayProps) => {
+	const { t } = useTranslation();
 	const home = useHomeDir();
 	const reduced = usePrefersReducedMotion();
 	const [announced, setAnnounced] = useState("");
@@ -786,7 +821,7 @@ const FirstRunOverlay = ({
 	const lastViewRef = useRef<ResolvedView | null>(null);
 	const resolved = done
 		? lastViewRef.current
-		: resolveView(snapshot, send, home, announce, reduced);
+		: resolveView(snapshot, send, home, announce, reduced, t);
 	if (!done) {
 		lastViewRef.current = resolved;
 	}

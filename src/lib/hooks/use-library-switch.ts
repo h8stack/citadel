@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "@/components/ui";
+import i18next from "@/lib/i18n";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import type {
 	SwitchEvent,
@@ -20,8 +21,6 @@ import { setActiveLibrary } from "@/stores/settings/actions";
 import { useSettings } from "@/stores/settings/store";
 
 const SWITCH_FAILED_TOAST_ID = "library-switch-failed";
-const SWITCH_FAILED_TITLE = "Couldn't switch libraries";
-const SWITCH_FAILED_FALLBACK = "The library could not be opened.";
 
 /**
  * A failed switch leaves settings pointing at the library that failed to
@@ -137,7 +136,9 @@ export const useLibrarySwitch = (): LibrarySwitchFlow => {
 				const engaged =
 					snapshotRef.current.stage.id === "arming" ||
 					snapshotRef.current.stage.id === "working";
-				const message = state.libraryError?.message ?? SWITCH_FAILED_FALLBACK;
+				const message =
+					state.libraryError?.message ??
+					i18next.t("The library could not be opened.");
 				// Toast when the failure is visible as a failed switch: curtain
 				// up, or a shadow load that failed while ready content stayed
 				// on screen. Boot failures surface through the first-run flow
@@ -148,7 +149,7 @@ export const useLibrarySwitch = (): LibrarySwitchFlow => {
 				) {
 					toast.show({
 						id: SWITCH_FAILED_TOAST_ID,
-						title: SWITCH_FAILED_TITLE,
+						title: i18next.t("Couldn't switch libraries"),
 						message,
 					});
 				}

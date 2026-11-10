@@ -249,13 +249,18 @@ export interface RemoteConnectionOptions {
 	url: string;
 }
 
+import i18next from "@/lib/i18n";
+
 export type Options = {
 	libraryType: "calibre";
 } & (LocalConnectionOptions | RemoteConnectionOptions);
 
 /** A metadata result's cover ID expired; search again for a fresh one. */
+export const COVER_EXPIRED_ERROR =
+	"This cover is no longer available — search again.";
+
 export class CoverExpiredError extends Error {
-	constructor(message = "This cover is no longer available — search again.") {
+	constructor(message = i18next.t(COVER_EXPIRED_ERROR)) {
 		super(message);
 		this.name = "CoverExpiredError";
 	}

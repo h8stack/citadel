@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 import styles from "./UploadProgressRing.module.css";
 
 export interface UploadProgressRingProps {
@@ -18,10 +19,11 @@ const CIRCUMFERENCE = 2 * Math.PI * 10;
 export const UploadProgressRing = ({
 	progress,
 	onStop,
-	stopLabel = "Stop upload",
+	stopLabel,
 	size = 24,
 	className,
 }: UploadProgressRingProps) => {
+	const { t } = useTranslation();
 	const value = Math.min(1, Math.max(0, progress));
 	const percent = Math.round(value * 100);
 	const ring = (
@@ -46,7 +48,10 @@ export const UploadProgressRing = ({
 			type="button"
 			className={clsx(styles.ring, styles.button, className)}
 			onClick={onStop}
-			aria-label={`${stopLabel}, ${percent}% sent`}
+			aria-label={t("{{label}}, {{percent}}% sent", {
+				label: stopLabel ?? t("Stop upload"),
+				percent,
+			})}
 		>
 			{ring}
 		</button>

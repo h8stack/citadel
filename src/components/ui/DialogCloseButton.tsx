@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { forwardRef } from "react";
+import { useTranslation } from "react-i18next";
 import styles from "./DialogCloseButton.module.css";
 
 export type DialogCloseButtonProps =
@@ -13,23 +14,32 @@ export type DialogCloseButtonProps =
 export const DialogCloseButton = forwardRef<
 	HTMLButtonElement,
 	DialogCloseButtonProps
->(({ className, "aria-label": ariaLabel = "Close", ...rest }, ref) => (
-	<button
-		ref={ref}
-		type="button"
-		aria-label={ariaLabel}
-		className={clsx(styles.close, className)}
-		{...rest}
-	>
-		<svg width="9" height="9" viewBox="0 0 9 9" fill="none" aria-hidden="true">
-			<path
-				d="M1.5 1.5l6 6M7.5 1.5l-6 6"
-				stroke="currentColor"
-				strokeWidth="1.4"
-				strokeLinecap="round"
-			/>
-		</svg>
-	</button>
-));
+>(({ className, "aria-label": ariaLabel, ...rest }, ref) => {
+	const { t } = useTranslation();
+	return (
+		<button
+			ref={ref}
+			type="button"
+			aria-label={ariaLabel ?? t("Close")}
+			className={clsx(styles.close, className)}
+			{...rest}
+		>
+			<svg
+				width="9"
+				height="9"
+				viewBox="0 0 9 9"
+				fill="none"
+				aria-hidden="true"
+			>
+				<path
+					d="M1.5 1.5l6 6M7.5 1.5l-6 6"
+					stroke="currentColor"
+					strokeWidth="1.4"
+					strokeLinecap="round"
+				/>
+			</svg>
+		</button>
+	);
+});
 
 DialogCloseButton.displayName = "DialogCloseButton";

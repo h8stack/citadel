@@ -4,6 +4,7 @@ import {
 	useParams,
 } from "@tanstack/react-router";
 import { type CSSProperties, useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { BookUpdate, NewAuthor } from "@/bindings";
 import { BookPage } from "@/components/pages/EditBook";
 import { Button, Spinner } from "@/components/ui";
@@ -28,6 +29,7 @@ const centeredFill: CSSProperties = {
 };
 
 const EditBookRoute = () => {
+	const { t } = useTranslation();
 	const { bookId } = useParams({ from: "/books/$bookId" });
 	const state = useLibraryState();
 	const readOnly = useLibraryStore((state) => state.library?.readOnly === true);
@@ -134,9 +136,9 @@ const EditBookRoute = () => {
 		return (
 			<div style={centeredFill}>
 				<div>
-					<p>This library is read-only.</p>
+					<p>{t("This library is read-only.")}</p>
 					<Button onClick={() => void navigate({ to: "/", replace: true })}>
-						Back to library
+						{t("Back to library")}
 					</Button>
 				</div>
 			</div>
@@ -157,7 +159,7 @@ const EditBookRoute = () => {
 					</ul>
 				</div>
 				<Button onClick={() => void navigate({ to: "/", replace: true })}>
-					Back to library
+					{t("Back to library")}
 				</Button>
 			</div>
 		);
@@ -176,7 +178,7 @@ const EditBookRoute = () => {
 		return (
 			<div style={centeredFill}>
 				<span style={{ fontSize: 13, color: "var(--ctd-ink-soft)" }}>
-					{error ?? "Book not found."}
+					{error ?? t("Book not found.")}
 				</span>
 			</div>
 		);

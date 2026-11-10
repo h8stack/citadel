@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 import { useLibraryActions, useLibraryStore } from "@/stores/library/store";
 import { Link as RouterLink } from "@tanstack/react-router";
 import DOMPurify from "dompurify";
@@ -91,7 +92,7 @@ const FormRow = ({
 const SubjectSuggestions = ({
 	subjects,
 	source,
-	fallbackLabel = "Suggested subjects:",
+	fallbackLabel,
 	onAdd,
 	onAddAll,
 }: {
@@ -101,11 +102,14 @@ const SubjectSuggestions = ({
 	onAdd: (subject: string) => void;
 	onAddAll: () => void;
 }) => {
+	const { t } = useTranslation();
 	if (subjects.length === 0) return null;
 	return (
 		<div className={styles.subjectStrip}>
 			<span className={styles.subjectStripLabel}>
-				{source ? `From ${source}:` : fallbackLabel}
+				{source
+					? t("From {{source}}:", { source })
+					: (fallbackLabel ?? t("Suggested subjects:"))}
 			</span>
 			{subjects.map((subject) => (
 				<Button key={subject} variant="subtle" onClick={() => onAdd(subject)}>
@@ -114,7 +118,7 @@ const SubjectSuggestions = ({
 			))}
 			{subjects.length > 1 && (
 				<Button variant="subtle" onClick={onAddAll}>
-					Add all {subjects.length}
+					{t("Add all {{total}}", { total: subjects.length })}
 				</Button>
 			)}
 		</div>
@@ -184,10 +188,11 @@ const DeleteBookSection = ({
 	deletion: TBookDeletion;
 	onDelete: () => Promise<void>;
 }) => {
+	const { t } = useTranslation();
 	const confirmation = useDeleteBookConfirmation(onDelete);
 	const copy = deleteBookCopy(deletion);
 	return (
-		<section className={styles.deleteSection} aria-label="Delete book">
+		<section className={styles.deleteSection} aria-label={t("Delete book")}>
 			{confirmation.error && (
 				<p role="alert" className={styles.deleteError}>
 					{confirmation.error}
@@ -199,7 +204,7 @@ const DeleteBookSection = ({
 				disabled={confirmation.pending}
 				onClick={() => confirmation.setOpen(true)}
 			>
-				{confirmation.pending ? "Deleting…" : "Delete Book…"}
+				{confirmation.pending ? t("Deleting…") : t("Delete Book…")}
 			</Button>
 			<AlertDialog
 				open={confirmation.open}
@@ -281,6 +286,7 @@ const CustomColumnInput = ({
 	value: CustomFieldValue;
 	onChange: (value: CustomFieldValue) => void;
 }) => {
+	const { t } = useTranslation();
 	switch (column.datatype) {
 		case "bool":
 			return (
@@ -288,9 +294,9 @@ const CustomColumnInput = ({
 					id={id}
 					aria-label={column.name}
 					options={[
-						{ value: UNSET_OPTION, label: "Unset" },
-						{ value: "yes", label: "Yes" },
-						{ value: "no", label: "No" },
+						{ value: UNSET_OPTION, label: t("Unset") },
+						{ value: "yes", label: t("Yes") },
+						{ value: "no", label: t("No") },
 					]}
 					value={value === "yes" || value === "no" ? value : UNSET_OPTION}
 					onChange={(next) => onChange(next === UNSET_OPTION ? null : next)}
@@ -318,7 +324,7 @@ const CustomColumnInput = ({
 					<TagsInput
 						id={id}
 						aria-label={column.name}
-						placeholder="Search or add value"
+						placeholder={t("Search or add value")}
 						value={Array.isArray(value) ? value : []}
 						onChange={onChange}
 					/>
@@ -355,7 +361,7 @@ const CustomColumnInput = ({
 					id={id}
 					aria-label={column.name}
 					options={[
-						{ value: UNSET_OPTION, label: "Unset" },
+						{ value: UNSET_OPTION, label: t("Unset") },
 						...column.enum_values.map((option) => ({
 							value: option,
 							label: option,
@@ -426,6 +432,7 @@ const EditBookForm = ({
 		value: string,
 	) => Promise<void>;
 }) => {
+	const { t } = useTranslation();
 	const actions = useLibraryActions();
 	// New authors are created as they're typed; saving waits for them so the
 	// book is linked to their real IDs, however slow the library is to answer.
@@ -587,7 +594,7 @@ const EditBookForm = ({
 				if (!isCurrentLibrary()) return;
 				const columnName =
 					customColumns.find((column) => column.column_id === change.columnId)
-						?.name ?? `column ${change.columnId}`;
+						?.name ?? t("column {{id}}", { id: change.columnId });
 				failures.push({
 					columnId: change.columnId,
 					message: `${columnName}: ${error instanceof Error ? error.message : String(error)}`,
@@ -622,6 +629,7 @@ const EditBookForm = ({
 		loadCustomColumns,
 		actions,
 		isCurrentLibrary,
+		t,
 	]);
 
 	const meta = useMetadataBookActions({
@@ -765,7 +773,7 @@ const EditBookForm = ({
 				setSaveStatus("idle");
 				meta.setMessage({
 					type: "error",
-					text: `Couldn't save: ${errorText(error)}`,
+					text: t("Couldn't save: {{error}}", { error: errorText(error) }),
 				});
 			} finally {
 				saving.current = false;
@@ -791,7 +799,10 @@ const EditBookForm = ({
 				);
 				if (known) return known.id;
 				const created = await createAuthorOnce(authorName);
-				if (!created) throw new Error(`Couldn't add the author ${authorName}`);
+				if (!created)
+					throw new Error(
+						t("Couldn't add the author {{name}}", { name: authorName }),
+					);
 				return created.id;
 			}),
 		);
@@ -897,7 +908,7 @@ const EditBookForm = ({
 							)}
 						>
 							<BackChevron />
-							All Books
+							{t("All Books")}
 						</RouterLink>
 					</div>
 					<h3
@@ -911,7 +922,7 @@ const EditBookForm = ({
 					<div className={styles.headerActions}>
 						{(hasChanges || history.length > 0) && (
 							<Button variant="subtle" onClick={undo}>
-								Undo
+								{t("Undo")}
 							</Button>
 						)}
 						{/* Saving happens by itself; the button says so as it goes:
@@ -924,14 +935,14 @@ const EditBookForm = ({
 							disabled={saveStatus === "idle" && !hasEditsToSave}
 						>
 							<span key={saveStatus} className={styles.saveLabel}>
-								{saveStatus === "saving" && "Saving…"}
+								{saveStatus === "saving" && t("Saving…")}
 								{saveStatus === "saved" && (
 									<>
 										<SavedCheck />
-										Saved
+										{t("Saved")}
 									</>
 								)}
-								{saveStatus === "idle" && "Save"}
+								{saveStatus === "idle" && t("Save")}
 							</span>
 						</Button>
 					</div>
@@ -955,7 +966,7 @@ const EditBookForm = ({
 							>
 								<span className={styles.noticeText}>{shownMessage.text}</span>
 								<IconButton
-									aria-label="Dismiss"
+									aria-label={t("Dismiss")}
 									className={styles.noticeClose}
 									onClick={dismissNotice}
 								>
@@ -981,14 +992,14 @@ const EditBookForm = ({
 				</div>
 				<div className={styles.formColumn}>
 					<section className={styles.section}>
-						<FormRow label="Title" htmlFor="edit-book-title">
+						<FormRow label={t("Title")} htmlFor="edit-book-title">
 							<TextInput
 								id="edit-book-title"
 								value={values.title}
 								onChange={(event) => setFieldValue("title", event.target.value)}
 							/>
 						</FormRow>
-						<FormRow label="Sort title" htmlFor="edit-book-sort-title">
+						<FormRow label={t("Sort title")} htmlFor="edit-book-sort-title">
 							<TextInput
 								id="edit-book-sort-title"
 								value={values.sortTitle}
@@ -997,19 +1008,19 @@ const EditBookForm = ({
 								}
 							/>
 						</FormRow>
-						<FormRow label="Series" htmlFor="edit-book-series">
+						<FormRow label={t("Series")} htmlFor="edit-book-series">
 							{/* The number belongs to the series, so it sits beside it. */}
 							<div className={styles.inlineControls}>
 								<TextInput
 									id="edit-book-series"
 									className={styles.flexGrow}
-									placeholder="Not in a series"
+									placeholder={t("Not in a series")}
 									value={values.series}
 									onChange={(event) =>
 										setFieldValue("series", event.target.value)
 									}
 								/>
-								<Tooltip label="Number in series">
+								<Tooltip label={t("Number in series")}>
 									<span className={styles.seriesHash} aria-hidden="true">
 										#
 									</span>
@@ -1017,7 +1028,7 @@ const EditBookForm = ({
 								<TextInput
 									id="edit-book-series-index"
 									className={styles.seriesIndex}
-									aria-label="Number in series"
+									aria-label={t("Number in series")}
 									type="number"
 									step="any"
 									min="0"
@@ -1032,22 +1043,22 @@ const EditBookForm = ({
 						</FormRow>
 					</section>
 					<section className={styles.section}>
-						<FormRow label="Authors" alignTop htmlFor="edit-book-authors">
+						<FormRow label={t("Authors")} alignTop htmlFor="edit-book-authors">
 							<TagsInput
 								id="edit-book-authors"
-								aria-label="Authors"
-								placeholder="Search or add author"
+								aria-label={t("Authors")}
+								placeholder={t("Search or add author")}
 								suggestions={allAuthorNames}
 								value={values.authorList}
 								onChange={handleAuthorsChange}
 							/>
 						</FormRow>
-						<FormRow label="Tags" alignTop htmlFor="edit-book-tags">
+						<FormRow label={t("Tags")} alignTop htmlFor="edit-book-tags">
 							<div className={styles.tagsField}>
 								<TagsInput
 									id="edit-book-tags"
-									aria-label="Tags"
-									placeholder="Search or add tag"
+									aria-label={t("Tags")}
+									placeholder={t("Search or add tag")}
 									suggestions={tagSuggestions}
 									value={values.tagList}
 									onChange={(next) => setFieldValue("tagList", next)}
@@ -1068,21 +1079,25 @@ const EditBookForm = ({
 							</div>
 						</FormRow>
 						{suggestableGenres.length > 0 && (
-							<FormRow label="Genres" alignTop>
+							<FormRow label={t("Genres")} alignTop>
 								<SubjectSuggestions
 									subjects={suggestableGenres}
 									source={null}
-									fallbackLabel="Suggested genres:"
+									fallbackLabel={t("Suggested genres:")}
 									onAdd={(genre) => void addGenres([genre])}
 									onAddAll={() => void addGenres(suggestableGenres)}
 								/>
 							</FormRow>
 						)}
-						<FormRow label="Languages" alignTop htmlFor="edit-book-languages">
+						<FormRow
+							label={t("Languages")}
+							alignTop
+							htmlFor="edit-book-languages"
+						>
 							<TagsInput
 								id="edit-book-languages"
-								aria-label="Languages"
-								placeholder="Search or add language"
+								aria-label={t("Languages")}
+								placeholder={t("Search or add language")}
 								suggestions={KNOWN_LANGUAGE_NAMES}
 								value={values.languageList}
 								onChange={(next) => setFieldValue("languageList", next)}
@@ -1090,7 +1105,7 @@ const EditBookForm = ({
 						</FormRow>
 					</section>
 					<section className={styles.section}>
-						<div className={styles.sectionLabel}>Identifiers</div>
+						<div className={styles.sectionLabel}>{t("Identifiers")}</div>
 						<div className={styles.sectionBody}>
 							{values.identifierList.map(({ label, id, value }, index) => (
 								<FormRow
@@ -1121,14 +1136,16 @@ const EditBookForm = ({
 													event.target.value,
 												)
 													.then(clearIdentifierFailure)
-													.catch(reportFailure("Couldn't save the identifier"));
+													.catch(
+														reportFailure(t("Couldn't save the identifier")),
+													);
 											}}
 										/>
 										<div className={styles.identifierActions}>
 											{deepLinkForIdentifier(label, value) && (
-												<Tooltip label="Open record in browser">
+												<Tooltip label={t("Open record in browser")}>
 													<IconButton
-														aria-label="Open record in browser"
+														aria-label={t("Open record in browser")}
 														onClick={() =>
 															void meta.openIdentifierLink(label, value)
 														}
@@ -1137,15 +1154,17 @@ const EditBookForm = ({
 													</IconButton>
 												</Tooltip>
 											)}
-											<Tooltip label="Remove identifier">
+											<Tooltip label={t("Remove identifier")}>
 												<IconButton
 													className={styles.removeIdentifier}
-													aria-label="Remove identifier"
+													aria-label={t("Remove identifier")}
 													onClick={() => {
 														onDeleteIdentifier(book.id, id)
 															.then(clearIdentifierFailure)
 															.catch(
-																reportFailure("Couldn't remove the identifier"),
+																reportFailure(
+																	t("Couldn't remove the identifier"),
+																),
 															);
 													}}
 												>
@@ -1157,13 +1176,13 @@ const EditBookForm = ({
 								</FormRow>
 							))}
 							<FormRow
-								label="Add identifier"
+								label={t("Add identifier")}
 								htmlFor="edit-book-new-identifier"
 							>
 								<div className={styles.inlineControls}>
 									<TextInput
 										id="edit-book-new-identifier"
-										placeholder="Type, e.g. ISBN or Goodreads"
+										placeholder={t("Type, e.g. ISBN or Goodreads")}
 										className={styles.flexGrow}
 										value={newBookIdentifierLabel}
 										onChange={(event) => {
@@ -1186,10 +1205,12 @@ const EditBookForm = ({
 														setNewBookIdentifierLabel("");
 														clearIdentifierFailure();
 													})
-													.catch(reportFailure("Couldn't add the identifier"));
+													.catch(
+														reportFailure(t("Couldn't add the identifier")),
+													);
 											}}
 										>
-											Add
+											{t("Add")}
 										</Button>
 									</div>
 								</div>
@@ -1198,7 +1219,7 @@ const EditBookForm = ({
 					</section>
 					{(customColumns.length > 0 || customColumnError) && (
 						<section className={styles.section}>
-							<div className={styles.sectionLabel}>Custom columns</div>
+							<div className={styles.sectionLabel}>{t("Custom columns")}</div>
 							<div className={styles.sectionBody}>
 								{customColumnError && (
 									<div
@@ -1209,7 +1230,7 @@ const EditBookForm = ({
 											{customColumnError}
 										</span>
 										<IconButton
-											aria-label="Dismiss"
+											aria-label={t("Dismiss")}
 											className={styles.noticeClose}
 											onClick={() => setCustomColumnError(null)}
 										>
@@ -1249,31 +1270,31 @@ const EditBookForm = ({
 					)}
 					{meta.anySourceEnabled && (
 						<section className={styles.section}>
-							<FormRow label="Metadata">
+							<FormRow label={t("Metadata")}>
 								<Button
 									variant="default"
 									onClick={() => meta.openSearch(values.title || "")}
 								>
-									Find Book Details…
+									{t("Find Book Details…")}
 								</Button>
 							</FormRow>
 						</section>
 					)}
 					<section className={styles.section}>
 						<div className={styles.sectionHeader}>
-							<div className={styles.sectionLabel}>Description</div>
+							<div className={styles.sectionLabel}>{t("Description")}</div>
 							<Button
 								variant="default"
 								onClick={() => setIsEditingDescription(!isEditingDescription)}
 							>
-								{isEditingDescription ? "Preview" : "Edit"}
+								{isEditingDescription ? t("Preview") : t("Edit")}
 							</Button>
 						</div>
 
 						{isEditingDescription ? (
 							<div className={styles.sectionBody}>
 								<RichTextEditor
-									aria-label="Description"
+									aria-label={t("Description")}
 									autoFocus
 									value={values.description}
 									onChange={(html) => setFieldValue("description", html)}
@@ -1291,7 +1312,7 @@ const EditBookForm = ({
 									/>
 								) : (
 									<p className={styles.emptyText}>
-										No description. Choose Edit to add one.
+										{t("No description. Choose Edit to add one.")}
 									</p>
 								)}
 							</div>

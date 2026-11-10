@@ -1,6 +1,8 @@
+import { useTranslation } from "react-i18next";
 import { CoverSpine } from "@/components/atoms/CoverSpine";
 import { F7BookFill } from "@/components/icons/F7BookFill";
 import { Button, Sheet, Spinner, TextInput } from "@/components/ui";
+import i18next from "@/lib/i18n";
 import type { AggregatedResult } from "@/lib/metadata-providers/aggregate";
 import { getDescriptor } from "@/lib/metadata-providers/registry";
 import styles from "./MetadataSearchModal.module.css";
@@ -47,124 +49,134 @@ export const MetadataSearchModal = ({
 	onCoverError,
 	error = null,
 	width = 780,
-}: MetadataSearchModalProps) => (
-	<Sheet
-		open={open}
-		onOpenChange={onOpenChange}
-		title="Find book details"
-		width={width}
-	>
-		<div className={styles.searchStack}>
-			<div className={styles.inlineControls}>
-				<TextInput
-					placeholder="Search by title, author, or ISBN…"
-					className={styles.flexGrow}
-					value={query}
-					onChange={(event) => onQueryChange(event.target.value)}
-					onKeyDown={(event) => {
-						if (event.key === "Enter") {
-							event.preventDefault();
-							onSearch();
-						}
-					}}
-				/>
-				<Button variant="primary" disabled={isSearching} onClick={onSearch}>
-					Search
-				</Button>
-			</div>
-			{error && (
-				<p className={styles.errorNote} role="alert">
-					{error}
-				</p>
-			)}
-			<div className={styles.searchResults}>
-				{results.length === 0 ? (
-					<div className={styles.searchEmpty}>
-						{isSearching ? (
-							<Spinner />
-						) : query ? (
-							"No matches found. Try a different title, or search by ISBN."
-						) : (
-							"Search your enabled sources by title, author, or ISBN."
-						)}
-					</div>
-				) : (
-					results.map((result) => (
-						<button
-							type="button"
-							key={`${result.book.provider}:${result.book.provider_id}`}
-							className={styles.searchResult}
-							onClick={() => onSelect(result)}
-						>
-							{result.coverUrl ? (
-								<span className={styles.searchResultCover}>
-									<span className={styles.coverArt}>
-										<img
-											src={result.coverUrl}
-											alt={result.book.title}
-											onError={onCoverError}
-										/>
-										<CoverSpine />
-									</span>
-								</span>
-							) : (
-								<span className={styles.coverPlaceholder} aria-hidden>
-									<F7BookFill className={styles.coverPlaceholderIcon} />
-								</span>
-							)}
-							<div className={styles.searchResultMeta}>
-								<span className={styles.searchResultTitle}>
-									{result.book.title}
-									{result.book.subtitle ? `: ${result.book.subtitle}` : ""}
-									{result.isIsbnMatch && (
-										<span className={styles.isbnBadge}>Matches ISBN</span>
-									)}
-								</span>
-								{result.book.authors.length > 0 && (
-									<span className={styles.searchResultDetail}>
-										{result.book.authors.join(", ")}
-									</span>
-								)}
-								{(result.book.release_year || result.book.publisher) && (
-									<span className={styles.searchResultDetail}>
-										{[result.book.release_year, result.book.publisher]
-											.filter(Boolean)
-											.join(" · ")}
-									</span>
-								)}
-								<span className={styles.searchResultProvenance}>
-									{provenance(result)}
-								</span>
-							</div>
-						</button>
-					))
+}: MetadataSearchModalProps) => {
+	const { t } = useTranslation();
+	return (
+		<Sheet
+			open={open}
+			onOpenChange={onOpenChange}
+			title={t("Find book details")}
+			width={width}
+		>
+			<div className={styles.searchStack}>
+				<div className={styles.inlineControls}>
+					<TextInput
+						placeholder={t("Search by title, author, or ISBN…")}
+						className={styles.flexGrow}
+						value={query}
+						onChange={(event) => onQueryChange(event.target.value)}
+						onKeyDown={(event) => {
+							if (event.key === "Enter") {
+								event.preventDefault();
+								onSearch();
+							}
+						}}
+					/>
+					<Button variant="primary" disabled={isSearching} onClick={onSearch}>
+						{t("Search")}
+					</Button>
+				</div>
+				{error && (
+					<p className={styles.errorNote} role="alert">
+						{error}
+					</p>
 				)}
-			</div>
-			{pendingProviderNames.length > 0 && (
-				<div className={styles.trickleFooter}>
-					<Spinner size={14} />
-					<span className={styles.trickleText}>
-						Still checking {joinNames(pendingProviderNames)}…
-					</span>
-					{onStop && (
-						<Button variant="subtle" onClick={onStop}>
-							Stop
-						</Button>
+				<div className={styles.searchResults}>
+					{results.length === 0 ? (
+						<div className={styles.searchEmpty}>
+							{isSearching ? (
+								<Spinner />
+							) : query ? (
+								t("No matches found. Try a different title, or search by ISBN.")
+							) : (
+								t("Search your enabled sources by title, author, or ISBN.")
+							)}
+						</div>
+					) : (
+						results.map((result) => (
+							<button
+								type="button"
+								key={`${result.book.provider}:${result.book.provider_id}`}
+								className={styles.searchResult}
+								onClick={() => onSelect(result)}
+							>
+								{result.coverUrl ? (
+									<span className={styles.searchResultCover}>
+										<span className={styles.coverArt}>
+											<img
+												src={result.coverUrl}
+												alt={result.book.title}
+												onError={onCoverError}
+											/>
+											<CoverSpine />
+										</span>
+									</span>
+								) : (
+									<span className={styles.coverPlaceholder} aria-hidden>
+										<F7BookFill className={styles.coverPlaceholderIcon} />
+									</span>
+								)}
+								<div className={styles.searchResultMeta}>
+									<span className={styles.searchResultTitle}>
+										{result.book.title}
+										{result.book.subtitle ? `: ${result.book.subtitle}` : ""}
+										{result.isIsbnMatch && (
+											<span className={styles.isbnBadge}>
+												{t("Matches ISBN")}
+											</span>
+										)}
+									</span>
+									{result.book.authors.length > 0 && (
+										<span className={styles.searchResultDetail}>
+											{result.book.authors.join(", ")}
+										</span>
+									)}
+									{(result.book.release_year || result.book.publisher) && (
+										<span className={styles.searchResultDetail}>
+											{[result.book.release_year, result.book.publisher]
+												.filter(Boolean)
+												.join(" · ")}
+										</span>
+									)}
+									<span className={styles.searchResultProvenance}>
+										{provenance(result)}
+									</span>
+								</div>
+							</button>
+						))
 					)}
 				</div>
-			)}
-		</div>
-	</Sheet>
-);
+				{pendingProviderNames.length > 0 && (
+					<div className={styles.trickleFooter}>
+						<Spinner size={14} />
+						<span className={styles.trickleText}>
+							{t("Still checking {{names}}…", {
+								names: joinNames(pendingProviderNames),
+							})}
+						</span>
+						{onStop && (
+							<Button variant="subtle" onClick={onStop}>
+								{t("Stop")}
+							</Button>
+						)}
+					</div>
+				)}
+			</div>
+		</Sheet>
+	);
+};
 
 const provenance = (result: AggregatedResult): string => {
 	const winner = getDescriptor(result.book.provider).displayName;
 	if (result.alsoOn.length === 0) return winner;
-	return `${winner} · also on ${result.alsoOn.join(", ")}`;
+	return `${winner} · ${i18next.t("also on {{names}}", {
+		names: result.alsoOn.join(", "),
+	})}`;
 };
 
 const joinNames = (names: string[]): string => {
+	const conjunction = i18next.t("and");
 	if (names.length === 1) return names[0] ?? "";
-	if (names.length === 2) return `${names[0]} and ${names[1]}`;
-	return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
+	if (names.length === 2) return `${names[0]} ${conjunction} ${names[1]}`;
+	return `${names.slice(0, -1).join(", ")} ${conjunction} ${names[names.length - 1]}`;
 };

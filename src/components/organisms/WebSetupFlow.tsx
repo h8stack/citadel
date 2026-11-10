@@ -1,6 +1,8 @@
 import clsx from "clsx";
+import type { TFunction } from "i18next";
 import type { FormEvent, ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button, Checkbox, Spinner, TextInput } from "@/components/ui";
 import type { CopyText } from "@/lib/hooks/use-copy-text";
 import { useCopyText } from "@/lib/hooks/use-copy-text";
@@ -38,7 +40,6 @@ import {
 	fmt,
 	GlobeGlyph,
 	MorphCard,
-	plural,
 	RevealView,
 } from "./SetupCard";
 import styles from "./WebSetupFlow.module.css";
@@ -111,14 +112,16 @@ const AddressView = ({
 	onCheck,
 	onDone,
 }: AddressViewProps) => {
+	const { t } = useTranslation();
 	const configured = urls.listed.length > 0;
 	if (configured) {
 		return (
 			<>
-				<h1 className={card.title}>Public URLs</h1>
+				<h1 className={card.title}>{t("Public URLs")}</h1>
 				<p className={card.lede}>
-					Citadel only accepts traffic at these URLs: you can add more to your
-					configuration.
+					{t(
+						"Citadel only accepts traffic at these URLs: you can add more to your configuration.",
+					)}
 				</p>
 				<ul className={styles.urlList}>
 					{urls.listed.map((url) => (
@@ -126,7 +129,7 @@ const AddressView = ({
 							<GlobeGlyph />
 							<span className={styles.urlListText}>{url}</span>
 							{url === urls.current && (
-								<span className={styles.currentPill}>current</span>
+								<span className={styles.currentPill}>{t("current")}</span>
 							)}
 						</li>
 					))}
@@ -138,7 +141,7 @@ const AddressView = ({
 						data-autofocus="true"
 						onClick={onDone}
 					>
-						Continue
+						{t("Continue")}
 					</Button>
 				</div>
 			</>
@@ -148,18 +151,20 @@ const AddressView = ({
 	const current = urls.current ?? "";
 	return (
 		<>
-			<h1 className={card.title}>Public URL</h1>
+			<h1 className={card.title}>{t("Public URL")}</h1>
 			<div className={styles.addressCopy}>
 				<p>
-					Optional: to have Citadel accept traffic only at this URL and
-					localhost, add it to <code>CITADEL_PUBLIC_URLS</code> (or{" "}
-					<code>publicUrls</code> in the config file) and restart Citadel.
+					{t(
+						"Optional: to have Citadel accept traffic only at this URL and localhost, add it to",
+					)}{" "}
+					<code>CITADEL_PUBLIC_URLS</code> {t("(or")} <code>publicUrls</code>{" "}
+					{t("in the config file) and restart Citadel.")}
 				</p>
 			</div>
 			{local ? (
 				<div className={styles.typedAddress}>
 					<TextInput
-						label="URL others will use"
+						label={t("URL others will use")}
 						name="publicUrl"
 						type="url"
 						inputMode="url"
@@ -171,27 +176,31 @@ const AddressView = ({
 				</div>
 			) : (
 				<div className={styles.currentUrl}>
-					<span className={styles.currentUrlLabel}>Current URL</span>
+					<span className={styles.currentUrlLabel}>{t("Current URL")}</span>
 					<div className={styles.currentUrlRow}>
 						<code className={styles.currentUrlValue}>{current}</code>
 						<Button
 							variant="subtle"
 							className={styles.copyButton}
-							aria-label={copied ? "Copied" : "Copy URL"}
+							aria-label={copied ? t("Copied") : t("Copy URL")}
 							onClick={() => onCopy(current)}
 						>
-							{copied ? "Copied" : <CopyGlyph />}
+							{copied ? t("Copied") : <CopyGlyph />}
 						</Button>
 					</div>
 				</div>
 			)}
 			{stillMissing && (
-				<ErrLine text="Citadel still has no public URLs. Restart it after setting CITADEL_PUBLIC_URLS, then continue." />
+				<ErrLine
+					text={t(
+						"Citadel still has no public URLs. Restart it after setting CITADEL_PUBLIC_URLS, then continue.",
+					)}
+				/>
 			)}
 			{error && <ErrLine text={error} />}
 			<div className={styles.pairActions}>
 				<Button disabled={checking} onClick={onDone}>
-					Skip
+					{t("Skip")}
 				</Button>
 				<Button
 					variant="primary"
@@ -199,21 +208,26 @@ const AddressView = ({
 					data-autofocus={local ? undefined : "true"}
 					onClick={onCheck}
 				>
-					{checking ? <BusyLabel text="Checking…" /> : "Continue"}
+					{checking ? <BusyLabel text={t("Checking…")} /> : t("Continue")}
 				</Button>
 			</div>
 		</>
 	);
 };
 
-const LoadingView = () => (
-	<>
-		<h1 className={clsx(card.title, card.titleSm)}>Checking the server</h1>
-		<p className={clsx(card.src, card.srcChecking)}>
-			<Spinner size={12} /> One moment…
-		</p>
-	</>
-);
+const LoadingView = () => {
+	const { t } = useTranslation();
+	return (
+		<>
+			<h1 className={clsx(card.title, card.titleSm)}>
+				{t("Checking the server")}
+			</h1>
+			<p className={clsx(card.src, card.srcChecking)}>
+				<Spinner size={12} /> {t("One moment…")}
+			</p>
+		</>
+	);
+};
 
 const UnavailableView = ({
 	message,
@@ -221,22 +235,25 @@ const UnavailableView = ({
 }: {
 	message: string;
 	onRetry: () => void;
-}) => (
-	<>
-		<h1 className={card.title}>Couldn’t reach the server</h1>
-		<ErrLine text={message} />
-		<div className={card.actions}>
-			<Button
-				variant="primary"
-				fullWidth
-				data-autofocus="true"
-				onClick={onRetry}
-			>
-				Try Again
-			</Button>
-		</div>
-	</>
-);
+}) => {
+	const { t } = useTranslation();
+	return (
+		<>
+			<h1 className={card.title}>{t("Couldn’t reach the server")}</h1>
+			<ErrLine text={message} />
+			<div className={card.actions}>
+				<Button
+					variant="primary"
+					fullWidth
+					data-autofocus="true"
+					onClick={onRetry}
+				>
+					{t("Try Again")}
+				</Button>
+			</div>
+		</>
+	);
+};
 
 interface BrowserPanelProps {
 	browser: FolderBrowser;
@@ -251,14 +268,15 @@ const BrowserPanel = ({
 	onPick,
 	onClose,
 }: BrowserPanelProps) => {
+	const { t } = useTranslation();
 	const { listing } = browser;
 	return (
-		<section className={styles.browser} aria-label="Folders on the server">
+		<section className={styles.browser} aria-label={t("Folders on the server")}>
 			<div className={styles.browserHead}>
 				<Button
 					variant="default"
 					disabled={browser.loading || !listing?.parent}
-					aria-label="Up one folder"
+					aria-label={t("Up one folder")}
 					onClick={() => onBrowseTo(listing?.parent ?? null)}
 				>
 					<UpGlyph />
@@ -269,7 +287,7 @@ const BrowserPanel = ({
 			</div>
 			{browser.loading ? (
 				<div className={styles.browserBusy}>
-					<Spinner size={12} /> Listing…
+					<Spinner size={12} /> {t("Listing…")}
 				</div>
 			) : browser.error ? (
 				<ErrLine text={browser.error} />
@@ -287,7 +305,7 @@ const BrowserPanel = ({
 								<FolderGlyph />
 								<span className={styles.entryName}>{entry.name}</span>
 								{entry.isLibrary && (
-									<span className={styles.entryTag}>library</span>
+									<span className={styles.entryTag}>{t("library")}</span>
 								)}
 							</button>
 						</li>
@@ -296,19 +314,19 @@ const BrowserPanel = ({
 			) : (
 				<div className={styles.browserEmpty}>
 					<FolderGlyph />
-					This folder has no folders inside it.
+					{t("This folder has no folders inside it.")}
 				</div>
 			)}
 			<div className={styles.browserFoot}>
 				<Button variant="default" onClick={onClose}>
-					Cancel
+					{t("Cancel")}
 				</Button>
 				<Button
 					variant="default"
 					disabled={browser.loading || !listing}
 					onClick={() => listing && onPick(listing.path)}
 				>
-					Choose This Folder
+					{t("Choose This Folder")}
 				</Button>
 			</div>
 		</section>
@@ -361,22 +379,25 @@ const PathView = ({
 		event.preventDefault();
 		onContinue();
 	};
+	const { t } = useTranslation();
+	const bookCount = inspectionLibrary?.bookCount ?? 0;
+	const authorCount = inspectionLibrary?.authorCount ?? 0;
 	const inert = busy || browser !== null;
 	return (
 		<form onSubmit={submit}>
 			<BackButton onClick={onBack} disabled={busy} />
 			<h1 className={card.title}>
-				{mode === "create" ? "New library" : "Use an existing library"}
+				{mode === "create" ? t("New library") : t("Use an existing library")}
 			</h1>
 			<p className={card.lede}>
 				{mode === "create"
-					? "Choose an empty folder on the server for it."
-					: "Choose the server folder that holds metadata.db."}
+					? t("Choose an empty folder on the server for it.")
+					: t("Choose the server folder that holds metadata.db.")}
 			</p>
 			<div className={styles.field}>
 				<div className={styles.fieldInput}>
 					<TextInput
-						label="Folder on the server"
+						label={t("Folder on the server")}
 						name="path"
 						placeholder={browser ? browser.path : "/srv/books"}
 						autoComplete="off"
@@ -390,7 +411,7 @@ const PathView = ({
 				</div>
 				{!browser && (
 					<Button variant="default" disabled={busy} onClick={onOpenBrowser}>
-						Browse…
+						{t("Browse…")}
 					</Button>
 				)}
 			</div>
@@ -402,30 +423,35 @@ const PathView = ({
 					onClose={onCloseBrowser}
 				/>
 			)}
-			{error !== null && <ErrLine text={error} />}
+			{error !== null && <ErrLine text={t(error)} />}
 			{error === null && result.kind === "checking" && (
 				<p className={clsx(card.src, card.srcChecking)}>
-					<Spinner size={12} /> Checking folder…
+					<Spinner size={12} /> {t("Checking folder…")}
 				</p>
 			)}
 			{error === null && result.kind === "error" && (
-				<ErrLine text={result.message} />
+				<ErrLine text={t(result.message)} />
 			)}
 			{error === null && result.kind === "crossover" && (
-				<ErrLine text={result.message} />
+				<ErrLine text={t(result.message)} />
 			)}
 			{error === null && result.kind === "ok" && mode === "adopt" && (
 				<p className={styles.okLine}>
 					<FolderGlyph />
 					<span>
 						<strong>
-							{fmt(inspectionLibrary?.bookCount ?? 0)}{" "}
-							{plural(inspectionLibrary?.bookCount ?? 0, "book")}
+							{t(bookCount === 1 ? "{{books}} book" : "{{books}} books", {
+								books: fmt(bookCount),
+							})}
 						</strong>{" "}
-						by {fmt(inspectionLibrary?.authorCount ?? 0)}{" "}
-						{plural(inspectionLibrary?.authorCount ?? 0, "author")}
+						{t(
+							authorCount === 1
+								? "by {{authors}} author"
+								: "by {{authors}} authors",
+							{ authors: fmt(authorCount) },
+						)}
 						{inspectionLibrary?.upgradeAvailable
-							? ", in an older Calibre format"
+							? t(", in an older Calibre format")
 							: ""}
 						.
 					</span>
@@ -434,8 +460,10 @@ const PathView = ({
 			{error === null && result.kind === "ok" && mode === "create" && (
 				<p className={card.helper}>
 					{inspectionStatus === "missing"
-						? "Citadel creates this folder. Books you add are copied into it."
-						: "Books you add are copied into this folder."}
+						? t(
+								"Citadel creates this folder. Books you add are copied into it.",
+							)
+						: t("Books you add are copied into this folder.")}
 				</p>
 			)}
 			<div className={card.actions}>
@@ -445,7 +473,7 @@ const PathView = ({
 					fullWidth
 					disabled={inert || result.kind === "error" || path.trim() === ""}
 				>
-					{busy ? <BusyLabel text="Checking…" /> : "Continue"}
+					{busy ? <BusyLabel text={t("Checking…")} /> : t("Continue")}
 				</Button>
 				{result.kind === "crossover" && (
 					<div className={card.crossover}>
@@ -456,8 +484,8 @@ const PathView = ({
 							onClick={onSwitchMode}
 						>
 							{mode === "create"
-								? "Use It Instead"
-								: "Start a New Library Here"}
+								? t("Use It Instead")
+								: t("Start a New Library Here")}
 						</Button>
 					</div>
 				)}
@@ -473,64 +501,71 @@ interface FoundChoicesProps {
 }
 
 /** What the server found in the folders mounted for libraries. */
-const FoundChoices = ({ found, onUse, onCreateIn }: FoundChoicesProps) => (
-	<>
-		{found.libraries.map((library, index) => {
-			const books = library.library?.bookCount ?? 0;
-			const details = [
-				`${fmt(books)} ${plural(books, "book")}`,
-				library.path,
-				library.library?.writable === false ? "read-only" : null,
-			].filter(Boolean);
-			return (
+const FoundChoices = ({ found, onUse, onCreateIn }: FoundChoicesProps) => {
+	const { t } = useTranslation();
+	return (
+		<>
+			{found.libraries.map((library, index) => {
+				const books = library.library?.bookCount ?? 0;
+				const details = [
+					t(books === 1 ? "{{books}} book" : "{{books}} books", {
+						books: fmt(books),
+					}),
+					library.path,
+					library.library?.writable === false ? t("read-only") : null,
+				].filter(Boolean);
+				return (
+					<button
+						key={library.path}
+						type="button"
+						className={card.choice}
+						data-autofocus={index === 0 ? "true" : undefined}
+						onClick={() => onUse(library.path)}
+					>
+						<span className={card.choiceIcon}>
+							<BookGlyph />
+						</span>
+						<span className={styles.choiceText}>
+							<span className={card.choiceTitle}>{library.name}</span>
+							<br />
+							<span className={card.choiceDesc}>{details.join(" · ")}</span>
+						</span>
+						<span className={card.choiceChevron}>
+							<ChevronRight />
+						</span>
+					</button>
+				);
+			})}
+			{found.createIn.map((spot, index) => (
 				<button
-					key={library.path}
+					key={spot.path}
 					type="button"
 					className={card.choice}
-					data-autofocus={index === 0 ? "true" : undefined}
-					onClick={() => onUse(library.path)}
+					data-autofocus={
+						found.libraries.length === 0 && index === 0 ? "true" : undefined
+					}
+					onClick={() => onCreateIn(spot.path)}
 				>
 					<span className={card.choiceIcon}>
-						<BookGlyph />
+						<FolderGlyph />
 					</span>
 					<span className={styles.choiceText}>
-						<span className={card.choiceTitle}>{library.name}</span>
+						<span className={card.choiceTitle}>
+							{t("Start a new library in {{path}}", { path: spot.path })}
+						</span>
 						<br />
-						<span className={card.choiceDesc}>{details.join(" · ")}</span>
+						<span className={card.choiceDesc}>
+							{t("This folder is empty.")}
+						</span>
 					</span>
 					<span className={card.choiceChevron}>
 						<ChevronRight />
 					</span>
 				</button>
-			);
-		})}
-		{found.createIn.map((spot, index) => (
-			<button
-				key={spot.path}
-				type="button"
-				className={card.choice}
-				data-autofocus={
-					found.libraries.length === 0 && index === 0 ? "true" : undefined
-				}
-				onClick={() => onCreateIn(spot.path)}
-			>
-				<span className={card.choiceIcon}>
-					<FolderGlyph />
-				</span>
-				<span className={styles.choiceText}>
-					<span className={card.choiceTitle}>
-						Start a new library in {spot.path}
-					</span>
-					<br />
-					<span className={card.choiceDesc}>This folder is empty.</span>
-				</span>
-				<span className={card.choiceChevron}>
-					<ChevronRight />
-				</span>
-			</button>
-		))}
-	</>
-);
+			))}
+		</>
+	);
+};
 
 interface ConfirmViewProps {
 	mode: SetupMode;
@@ -572,11 +607,12 @@ const ConfirmView = ({
 		event.preventDefault();
 		onCommit();
 	};
+	const { t } = useTranslation();
 	return (
 		<form onSubmit={submit}>
 			<BackButton onClick={onBack} disabled={busy} />
 			<h1 className={card.title}>
-				{mode === "create" ? "Name your library" : "Open this library"}
+				{mode === "create" ? t("Name your library") : t("Open this library")}
 			</h1>
 			<div className={styles.pathLine}>
 				<FolderGlyph />
@@ -584,7 +620,7 @@ const ConfirmView = ({
 			</div>
 			<div className={styles.field}>
 				<TextInput
-					label="Library name"
+					label={t("Library name")}
 					name="name"
 					autoComplete="off"
 					value={name}
@@ -598,13 +634,13 @@ const ConfirmView = ({
 					<Checkbox
 						checked={readOnly}
 						disabled={busy || readOnlyForced}
-						label={READ_ONLY_PROMPT}
+						label={t(READ_ONLY_PROMPT)}
 						onCheckedChange={onReadOnlyChange}
 					/>
 					<p className={styles.optionNote}>
 						{readOnlyForced && readOnlyReason
 							? readOnlyReason
-							: READ_ONLY_DESCRIPTION}
+							: t(READ_ONLY_DESCRIPTION)}
 					</p>
 				</div>
 			)}
@@ -613,25 +649,27 @@ const ConfirmView = ({
 					<Checkbox
 						checked={upgrade}
 						disabled={busy}
-						label={UPGRADE_PROMPT}
+						label={t(UPGRADE_PROMPT)}
 						onCheckedChange={onUpgradeChange}
 					/>
 				</div>
 			)}
 			{mode === "create" && (
 				<p className={card.helper}>
-					Readers you add see this name. You can change it later.
+					{t("Readers you add see this name. You can change it later.")}
 				</p>
 			)}
 			{error !== null && <ErrLine text={error} />}
 			<div className={card.actions}>
 				<Button type="submit" variant="primary" fullWidth disabled={busy}>
 					{busy ? (
-						<BusyLabel text={mode === "create" ? "Creating…" : "Opening…"} />
+						<BusyLabel
+							text={mode === "create" ? t("Creating…") : t("Opening…")}
+						/>
 					) : mode === "create" ? (
-						"Create Library"
+						t("Create Library")
 					) : (
-						"Open Library"
+						t("Open Library")
 					)}
 				</Button>
 			</div>
@@ -652,19 +690,23 @@ const BrokenView = ({
 	onRetry,
 	onRelocate,
 }: BrokenViewProps) => {
+	const { t } = useTranslation();
 	const inert = retry === "checking";
 	return (
 		<>
-			<h1 className={card.title}>{library.name} isn’t reachable</h1>
+			<h1 className={card.title}>
+				{t("{{name}} isn’t reachable", { name: library.name })}
+			</h1>
 			<div className={styles.pathLine}>
 				<FolderGlyph />
 				<span>{library.path}</span>
 			</div>
 			<p className={styles.problem}>
 				{library.problem ??
-					"The server couldn’t open the library at this path."}{" "}
-				If it lives on a drive or share that isn’t mounted, reconnect it, then
-				retry.
+					t("The server couldn’t open the library at this path.")}{" "}
+				{t(
+					"If it lives on a drive or share that isn’t mounted, reconnect it, then retry.",
+				)}
 			</p>
 			<div className={card.actions}>
 				<Button
@@ -674,11 +716,11 @@ const BrokenView = ({
 					data-autofocus="true"
 					onClick={onRetry}
 				>
-					{inert ? <BusyLabel text="Checking…" /> : "Retry"}
+					{inert ? <BusyLabel text={t("Checking…")} /> : t("Retry")}
 				</Button>
 			</div>
 			{retry === "failed" && (
-				<div className={card.retryNote}>Still not reachable.</div>
+				<div className={card.retryNote}>{t("Still not reachable.")}</div>
 			)}
 			<div className={card.divider} />
 			<div className={clsx(card.crossover, card.escapesAfterDivider)}>
@@ -688,7 +730,7 @@ const BrokenView = ({
 					disabled={inert}
 					onClick={onRelocate}
 				>
-					It Moved — Choose the New Location…
+					{t("It Moved — Choose the New Location…")}
 				</Button>
 			</div>
 		</>
@@ -710,6 +752,7 @@ const resolveView = (
 	announce: (text: string) => void,
 	reduced: boolean,
 	copy: CopyText,
+	t: TFunction,
 ): ResolvedView | null => {
 	const { step } = snapshot;
 	const hasFound =
@@ -718,14 +761,14 @@ const resolveView = (
 		case "loading":
 			return {
 				key: "loading",
-				label: "Checking the server",
+				label: t("Checking the server"),
 				hasBack: false,
 				node: <LoadingView />,
 			};
 		case "address":
 			return {
 				key: "address",
-				label: "Public URL",
+				label: t("Public URL"),
 				hasBack: false,
 				node: (
 					<AddressView
@@ -745,7 +788,7 @@ const resolveView = (
 		case "unavailable":
 			return {
 				key: "unavailable",
-				label: "Couldn’t reach the server",
+				label: t("Couldn’t reach the server"),
 				hasBack: false,
 				node: (
 					<UnavailableView
@@ -757,18 +800,18 @@ const resolveView = (
 		case "chooser":
 			return {
 				key: "chooser",
-				label: "Set up your library",
+				label: t("Set up your library"),
 				hasBack: false,
 				node: (
 					<ChooserView
 						disabled={false}
 						lede={
 							hasFound
-								? "Found in the folders mounted for libraries:"
-								: "Your books live in a Calibre‑compatible library."
+								? t("Found in the folders mounted for libraries:")
+								: t("Your books live in a Calibre‑compatible library.")
 						}
-						adoptDescription="Use a Calibre library already on the server."
-						createDescription="Make an empty library on the server."
+						adoptDescription={t("Use a Calibre library already on the server.")}
+						createDescription={t("Make an empty library on the server.")}
 						onAdopt={() => send({ type: "CHOOSE_ADOPT" })}
 						onStartNew={() => send({ type: "CHOOSE_CREATE" })}
 						found={
@@ -786,7 +829,7 @@ const resolveView = (
 		case "broken":
 			return {
 				key: "broken",
-				label: `${step.library.name} isn’t reachable`,
+				label: t("{{name}} isn’t reachable", { name: step.library.name }),
 				hasBack: false,
 				node: (
 					<BrokenView
@@ -802,7 +845,9 @@ const resolveView = (
 			return {
 				key: `path:${step.mode}`,
 				label:
-					step.mode === "create" ? "New library" : "Use an existing library",
+					step.mode === "create"
+						? t("New library")
+						: t("Use an existing library"),
 				hasBack: true,
 				node: (
 					<PathView
@@ -830,7 +875,9 @@ const resolveView = (
 			return {
 				key: `confirm:${step.mode}`,
 				label:
-					step.mode === "create" ? "Name your library" : "Open this library",
+					step.mode === "create"
+						? t("Name your library")
+						: t("Open this library"),
 				hasBack: true,
 				node: (
 					<ConfirmView
@@ -861,7 +908,7 @@ const resolveView = (
 		case "reveal":
 			return {
 				key: "reveal",
-				label: "Your library is ready",
+				label: t("Your library is ready"),
 				hasBack: false,
 				node: (
 					<RevealView
@@ -887,6 +934,7 @@ export interface WebSetupFlowProps {
 
 /** The administrator's setup card over the window background. */
 export const WebSetupFlow = ({ onFinished }: WebSetupFlowProps) => {
+	const { t } = useTranslation();
 	const { snapshot, send } = useWebSetupFlow();
 	const reduced = usePrefersReducedMotion();
 	const [announced, setAnnounced] = useState("");
@@ -894,7 +942,7 @@ export const WebSetupFlow = ({ onFinished }: WebSetupFlowProps) => {
 
 	const done = snapshot.step.id === "done";
 	const copy = useCopyText();
-	const resolved = resolveView(snapshot, send, announce, reduced, copy);
+	const resolved = resolveView(snapshot, send, announce, reduced, copy, t);
 
 	useEffect(() => {
 		if (done) return;

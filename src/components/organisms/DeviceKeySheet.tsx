@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { TablerCopy } from "@/components/icons/TablerCopy";
 import classes from "@/components/organisms/DeviceKeySheet.module.css";
 import { Button, IconButton, Sheet, TextInput } from "@/components/ui";
@@ -34,110 +35,115 @@ export const DeviceKeySheet = ({
 	onCopyKey,
 	onClose,
 	onCloseAutoFocus,
-}: DeviceKeySheetProps) => (
-	<Sheet
-		open={open}
-		onOpenChange={(next) => {
-			if (!next) onClose();
-		}}
-		title={view?.step === "showing" ? view.key.key.name : "Add Device"}
-		width={400}
-		dismissible={view?.step !== "showing"}
-		onOpenAutoFocus={(event) => {
-			// Rotating opens straight on this step: focus nothing that a held
-			// key could press. Arriving from the naming step lands the same way.
-			if (view?.step !== "showing") return;
-			event.preventDefault();
-			(event.target as HTMLElement).focus();
-		}}
-		onCloseAutoFocus={onCloseAutoFocus}
-	>
-		{view?.step === "showing" ? (
-			<div className={classes.showing}>
-				<dl className={classes.details}>
-					<dt className={classes.passwordLabel}>Password</dt>
-					<dd>
-						<div className={classes.passwordRow}>
-							<code className={classes.password}>
-								{passwordRuns(view.key.secret).map((run, index) => (
-									<span
-										// biome-ignore lint/suspicious/noArrayIndexKey: runs of one fixed password never reorder
-										key={index}
-										data-kind={run.kind}
-									>
-										{run.text}
-									</span>
-								))}
-							</code>
-							<IconButton
-								aria-label="Copy password"
-								className={copied ? classes.copied : undefined}
-								onMouseDown={(event) => event.preventDefault()}
-								onClick={onCopyKey}
-							>
-								{copied ? (
-									<svg
-										className={classes.check}
-										aria-hidden="true"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										strokeWidth="2.5"
-										strokeLinecap="round"
-									>
-										<path d="M4 12.5l5 5L20 6.5" />
-									</svg>
-								) : (
-									<TablerCopy />
-								)}
-							</IconButton>
-							<span className={classes.visuallyHidden} aria-live="polite">
-								{copied ? "Copied" : ""}
-							</span>
-						</div>
-						<p className={classes.note}>This will only be shown once.</p>
-					</dd>
-					<dt>Address</dt>
-					<dd className={address ? classes.value : classes.pending}>
-						{address ?? "Not sharing yet"}
-					</dd>
-					<dt>Username</dt>
-					<dd className={classes.value}>{view.key.username}</dd>
-				</dl>
-				<div className={classes.actions}>
-					<Button variant="primary" onClick={onClose}>
-						Done
-					</Button>
+}: DeviceKeySheetProps) => {
+	const { t } = useTranslation();
+	return (
+		<Sheet
+			open={open}
+			onOpenChange={(next) => {
+				if (!next) onClose();
+			}}
+			title={view?.step === "showing" ? view.key.key.name : t("Add Device")}
+			width={400}
+			dismissible={view?.step !== "showing"}
+			onOpenAutoFocus={(event) => {
+				// Rotating opens straight on this step: focus nothing that a held
+				// key could press. Arriving from the naming step lands the same way.
+				if (view?.step !== "showing") return;
+				event.preventDefault();
+				(event.target as HTMLElement).focus();
+			}}
+			onCloseAutoFocus={onCloseAutoFocus}
+		>
+			{view?.step === "showing" ? (
+				<div className={classes.showing}>
+					<dl className={classes.details}>
+						<dt className={classes.passwordLabel}>{t("Password")}</dt>
+						<dd>
+							<div className={classes.passwordRow}>
+								<code className={classes.password}>
+									{passwordRuns(view.key.secret).map((run, index) => (
+										<span
+											// biome-ignore lint/suspicious/noArrayIndexKey: runs of one fixed password never reorder
+											key={index}
+											data-kind={run.kind}
+										>
+											{run.text}
+										</span>
+									))}
+								</code>
+								<IconButton
+									aria-label={t("Copy password")}
+									className={copied ? classes.copied : undefined}
+									onMouseDown={(event) => event.preventDefault()}
+									onClick={onCopyKey}
+								>
+									{copied ? (
+										<svg
+											className={classes.check}
+											aria-hidden="true"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											strokeWidth="2.5"
+											strokeLinecap="round"
+										>
+											<path d="M4 12.5l5 5L20 6.5" />
+										</svg>
+									) : (
+										<TablerCopy />
+									)}
+								</IconButton>
+								<span className={classes.visuallyHidden} aria-live="polite">
+									{copied ? t("Copied") : ""}
+								</span>
+							</div>
+							<p className={classes.note}>
+								{t("This will only be shown once.")}
+							</p>
+						</dd>
+						<dt>{t("Address")}</dt>
+						<dd className={address ? classes.value : classes.pending}>
+							{address ?? t("Not sharing yet")}
+						</dd>
+						<dt>{t("Username")}</dt>
+						<dd className={classes.value}>{view.key.username}</dd>
+					</dl>
+					<div className={classes.actions}>
+						<Button variant="primary" onClick={onClose}>
+							{t("Done")}
+						</Button>
+					</div>
 				</div>
-			</div>
-		) : (
-			<form
-				className={classes.stack}
-				onSubmit={(event) => {
-					event.preventDefault();
-					onSubmitName();
-				}}
-			>
-				<TextInput
-					autoFocus
-					label="Device"
-					placeholder="e.g. Kobo, KOReader on phone"
-					error={error}
-					value={name}
-					spellCheck={false}
-					onChange={(event) => onNameChange(event.currentTarget.value)}
-				/>
-				<div className={classes.actions}>
-					<Button onClick={onClose}>Cancel</Button>
-					<Button
-						type="submit"
-						variant="primary"
-						disabled={isActing || !name.trim()}
-					>
-						Add
-					</Button>
-				</div>
-			</form>
-		)}
-	</Sheet>
-);
+			) : (
+				<form
+					className={classes.stack}
+					onSubmit={(event) => {
+						event.preventDefault();
+						onSubmitName();
+					}}
+				>
+					<TextInput
+						autoFocus
+						label={t("Device")}
+						placeholder={t("e.g. Kobo, KOReader on phone")}
+						error={error}
+						value={name}
+						spellCheck={false}
+						onChange={(event) => onNameChange(event.currentTarget.value)}
+					/>
+					<div className={classes.actions}>
+						<Button onClick={onClose}>{t("Cancel")}</Button>
+						<Button
+							type="submit"
+							variant="primary"
+							disabled={isActing || !name.trim()}
+						>
+							{t("Add")}
+						</Button>
+					</div>
+				</form>
+			)}
+		</Sheet>
+	);
+};

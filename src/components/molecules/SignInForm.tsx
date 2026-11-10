@@ -1,4 +1,5 @@
 import { type FormEvent, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FluentLibraryFilled } from "@/components/icons/FluentLibraryFilled";
 import { Button, TextInput } from "@/components/ui";
 import styles from "./SignInForm.module.css";
@@ -10,6 +11,7 @@ export interface SignInFormProps {
 }
 
 export const SignInForm = ({ onSubmit, pending, error }: SignInFormProps) => {
+	const { t } = useTranslation();
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 	const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -22,9 +24,9 @@ export const SignInForm = ({ onSubmit, pending, error }: SignInFormProps) => {
 				<div className={styles.mark} aria-hidden="true">
 					<FluentLibraryFilled fontSize={28} />
 				</div>
-				<h1 className={styles.title}>Sign in to Citadel</h1>
+				<h1 className={styles.title}>{t("Sign in to Citadel")}</h1>
 				<TextInput
-					label="Username"
+					label={t("Username")}
 					name="username"
 					autoComplete="username"
 					autoCapitalize="none"
@@ -34,7 +36,7 @@ export const SignInForm = ({ onSubmit, pending, error }: SignInFormProps) => {
 					onChange={(event) => setUsername(event.currentTarget.value)}
 				/>
 				<TextInput
-					label="Password"
+					label={t("Password")}
 					name="password"
 					type="password"
 					autoComplete="current-password"
@@ -48,7 +50,7 @@ export const SignInForm = ({ onSubmit, pending, error }: SignInFormProps) => {
 					</p>
 				)}
 				<Button type="submit" variant="primary" fullWidth disabled={pending}>
-					{pending ? "Signing in…" : "Sign In"}
+					{pending ? t("Signing in…") : t("Sign In")}
 				</Button>
 			</form>
 		</main>

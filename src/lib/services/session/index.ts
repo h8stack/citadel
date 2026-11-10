@@ -1,4 +1,5 @@
 import { createCitadelHttpClient } from "@/lib/api/client";
+import i18next from "@/lib/i18n";
 
 export { ServerUnreachableError } from "@/lib/api/client";
 import type { components } from "@/lib/api/schema.generated";
@@ -27,7 +28,7 @@ const failure = (
 ): Error =>
 	response.status === MISDIRECTED
 		? new WrongAddressError(
-				error?.message ?? "Citadel isn't set up for this address.",
+				error?.message ?? i18next.t("Citadel isn't set up for this address."),
 			)
 		: new Error(error?.message ?? `${fallback} (${response.status})`);
 

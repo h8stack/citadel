@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { IconButton } from "@/components/ui";
 import styles from "./RichTextEditor.module.css";
 
@@ -12,11 +13,11 @@ import styles from "./RichTextEditor.module.css";
  * HTML editing without a full editor framework.
  */
 const COMMANDS = [
-	{ command: "bold", label: "Bold" },
-	{ command: "italic", label: "Italic" },
-	{ command: "underline", label: "Underline" },
-	{ command: "insertUnorderedList", label: "Bullet list" },
-	{ command: "insertOrderedList", label: "Numbered list" },
+	{ command: "bold" },
+	{ command: "italic" },
+	{ command: "underline" },
+	{ command: "insertUnorderedList" },
+	{ command: "insertOrderedList" },
 ] as const;
 
 type CommandId = (typeof COMMANDS)[number]["command"];
@@ -122,6 +123,14 @@ export const RichTextEditor = ({
 	"aria-label": ariaLabel,
 	autoFocus = false,
 }: RichTextEditorProps) => {
+	const { t } = useTranslation();
+	const commandLabels: Record<CommandId, string> = {
+		bold: t("Bold"),
+		italic: t("Italic"),
+		underline: t("Underline"),
+		insertUnorderedList: t("Bullet list"),
+		insertOrderedList: t("Numbered list"),
+	};
 	const id = useId();
 	const labelId = label ? `${id}-label` : undefined;
 	const contentRef = useRef<HTMLDivElement>(null);
@@ -192,10 +201,10 @@ export const RichTextEditor = ({
 	const renderGroup = (commands: readonly CommandId[]) => (
 		<div className={styles.group}>
 			{COMMANDS.filter(({ command }) => commands.includes(command)).map(
-				({ command, label: commandLabel }) => (
+				({ command }) => (
 					<IconButton
 						key={command}
-						aria-label={commandLabel}
+						aria-label={commandLabels[command]}
 						aria-pressed={activeStates[command]}
 						active={activeStates[command]}
 						className={styles.toolButton}
@@ -222,7 +231,7 @@ export const RichTextEditor = ({
 				<div
 					className={styles.toolbar}
 					role="toolbar"
-					aria-label="Text formatting"
+					aria-label={t("Text formatting")}
 				>
 					{renderGroup(INLINE_COMMANDS)}
 					{renderGroup(["insertUnorderedList", "insertOrderedList"])}

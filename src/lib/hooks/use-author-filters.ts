@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { LibraryAuthor } from "@/bindings";
 import { sortAuthors } from "@/lib/domain/author";
+import i18next from "@/lib/i18n";
 
 export const AuthorSortOrder = {
 	nameAz: "name-asc",
@@ -18,13 +19,19 @@ export const AuthorSortOrderLabel: Record<
 	nameZa: "Name (Z–A)",
 } as const;
 
-export const sortOrderOptions: {
+export const authorSortOrderLabel = (
+	order: keyof typeof AuthorSortOrder,
+): string => i18next.t(AuthorSortOrderLabel[order]);
+
+/** Built at call time so a language change is picked up. */
+export const authorSortOrderOptions = (): {
 	value: AuthorSortOrderValue;
 	label: string;
-}[] = Object.entries(AuthorSortOrder).map(([key, value]) => ({
-	value,
-	label: AuthorSortOrderLabel[key as keyof typeof AuthorSortOrder],
-}));
+}[] =>
+	Object.entries(AuthorSortOrder).map(([key, value]) => ({
+		value,
+		label: authorSortOrderLabel(key as keyof typeof AuthorSortOrder),
+	}));
 
 export interface AuthorFilters {
 	searchTerm: string;

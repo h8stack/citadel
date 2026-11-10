@@ -6,6 +6,7 @@ import {
 	useEffect,
 	useMemo,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui";
 import { useChooseBookFiles } from "@/lib/hooks/use-choose-book-files";
 import { usePlatform } from "@/lib/platform/context";
@@ -76,6 +77,7 @@ export const useAddBook = (): AddBookContextValue => {
 };
 
 export const AddBookButton = () => {
+	const { t } = useTranslation();
 	const { startAddBook, canAddBook } = useAddBook();
 
 	if (!canAddBook) {
@@ -83,7 +85,7 @@ export const AddBookButton = () => {
 	}
 
 	return (
-		<Button variant="default" aria-label="Add Book" onClick={startAddBook}>
+		<Button variant="default" aria-label={t("Add Book")} onClick={startAddBook}>
 			<svg
 				width="13"
 				height="13"
@@ -98,7 +100,7 @@ export const AddBookButton = () => {
 					strokeLinecap="round"
 				/>
 			</svg>
-			Add Book…
+			{t("Add Book…")}
 		</Button>
 	);
 };

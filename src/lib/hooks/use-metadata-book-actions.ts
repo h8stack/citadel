@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { BookMetadata, LibraryBook } from "@/bindings";
 import { useLibraryActions, useLibraryStore } from "@/stores/library/store";
+import i18next from "@/lib/i18n";
 import { normalizeIsbn } from "@/lib/isbn";
 import { applyMetadataCover, refreshCoverId } from "@/lib/metadata-import";
 import type {
@@ -198,7 +199,9 @@ export const useMetadataBookActions = ({
 		if (!anySourceEnabled) {
 			setMessage({
 				type: "error",
-				text: "Turn on a metadata source in Settings → Metadata first.",
+				text: i18next.t(
+					"Turn on a metadata source in Settings → Metadata first.",
+				),
 			});
 			return;
 		}
@@ -229,14 +232,16 @@ export const useMetadataBookActions = ({
 		if (!anySourceEnabled) {
 			setMessage({
 				type: "error",
-				text: "Turn on a metadata source in Settings → Metadata first.",
+				text: i18next.t(
+					"Turn on a metadata source in Settings → Metadata first.",
+				),
 			});
 			return;
 		}
 		if (!fileIsbn) {
 			setMessage({
 				type: "error",
-				text: "This book needs a valid ISBN to look up metadata.",
+				text: i18next.t("This book needs a valid ISBN to look up metadata."),
 			});
 			return;
 		}
@@ -249,17 +254,24 @@ export const useMetadataBookActions = ({
 			if (!match) {
 				setMessage({
 					type: "error",
-					text: `No match found for ISBN ${fileIsbn}.`,
+					text: i18next.t("No match found for ISBN {{isbn}}.", {
+						isbn: fileIsbn,
+					}),
 				});
 				return;
 			}
 			await applyBookToLibrary(match.book);
 			setMessage({
 				type: "success",
-				text: `Updated from ${getDescriptor(match.book.provider).displayName}.`,
+				text: i18next.t("Updated from {{provider}}.", {
+					provider: getDescriptor(match.book.provider).displayName,
+				}),
 			});
 		} catch (error) {
-			setMessage({ type: "error", text: `Error: ${errorText(error)}` });
+			setMessage({
+				type: "error",
+				text: i18next.t("Error: {{message}}", { message: errorText(error) }),
+			});
 		} finally {
 			setIsFetching(false);
 		}
@@ -280,10 +292,15 @@ export const useMetadataBookActions = ({
 			setIsSearchModalOpen(false);
 			setMessage({
 				type: "success",
-				text: `Updated from ${getDescriptor(result.book.provider).displayName}.`,
+				text: i18next.t("Updated from {{provider}}.", {
+					provider: getDescriptor(result.book.provider).displayName,
+				}),
 			});
 		} catch (error) {
-			setMessage({ type: "error", text: `Error: ${errorText(error)}` });
+			setMessage({
+				type: "error",
+				text: i18next.t("Error: {{message}}", { message: errorText(error) }),
+			});
 		}
 	};
 
@@ -304,7 +321,7 @@ export const useMetadataBookActions = ({
 		if (!url) {
 			setMessage({
 				type: "error",
-				text: "No link is available for this identifier.",
+				text: i18next.t("No link is available for this identifier."),
 			});
 			return;
 		}

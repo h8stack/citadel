@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { F7BookFill } from "@/components/icons/F7BookFill";
 import {
 	ContextMenu,
@@ -40,9 +41,6 @@ interface RenameState {
 	error: string | null;
 }
 
-const plural = (count: number, word: string) =>
-	count === 1 ? word : `${word}s`;
-
 const CheckmarkIcon = () => (
 	<svg
 		width="12"
@@ -74,6 +72,7 @@ export const LibraryListCard = ({
 	statsByPath,
 	onAddLibrary,
 }: LibraryListCardProps) => {
+	const { t } = useTranslation();
 	const platform = usePlatform();
 	const [rename, setRename] = useState<RenameState | null>(null);
 	const [menu, setMenu] = useState<ContextMenuState | null>(null);
@@ -119,14 +118,14 @@ export const LibraryListCard = ({
 		const items: ContextMenuItem[] = [
 			{
 				id: "rename",
-				label: "Rename",
+				label: t("Rename"),
 				onSelect: () => startRename(library.id),
 			},
 		];
 		if (platform.capabilities.canRevealInFileManager) {
 			items.push({
 				id: "reveal",
-				label: "Reveal in Finder",
+				label: t("Reveal in Finder"),
 				onSelect: () => {
 					void platform.fileOpener.revealInFileManager(library.absolutePath);
 				},
@@ -143,7 +142,7 @@ export const LibraryListCard = ({
 
 	return (
 		<div>
-			<h4 className={styles.cardTitle}>Libraries</h4>
+			<h4 className={styles.cardTitle}>{t("Libraries")}</h4>
 			<div className={styles.card}>
 				{libraries.map((library) => (
 					<LibraryRow
@@ -219,6 +218,7 @@ const LibraryRow = ({
 	onCancelRename,
 	onOpenMenu,
 }: LibraryRowProps) => {
+	const { t } = useTranslation();
 	const fetchedStats = useLibraryStats(
 		library.absolutePath,
 		statsOverride === undefined,
@@ -240,11 +240,16 @@ const LibraryRow = ({
 		onOpenMenu(rect.left + 12, rect.bottom + 4, event.currentTarget);
 	};
 
+	const booksLabel = (count: number) =>
+		t("{{total}} {{noun}}", {
+			total: count,
+			noun: t(count === 1 ? "book" : "books"),
+		});
 	const subtitle =
 		stats.status === "loading"
 			? "…"
 			: stats.status === "loaded"
-				? `${stats.stats.book_count} ${plural(stats.stats.book_count, "book")}`
+				? booksLabel(stats.stats.book_count)
 				: null;
 
 	if (isRenaming) {
@@ -255,7 +260,9 @@ const LibraryRow = ({
 					<TextInput
 						value={renameDraft}
 						error={renameError}
-						aria-label={`Library name for ${library.displayName}`}
+						aria-label={t("Library name for {{name}}", {
+							name: library.displayName,
+						})}
 						autoFocus
 						className={styles.renameInput}
 						onChange={(event) => onRenameDraftChange(event.currentTarget.value)}
@@ -314,6 +321,7 @@ const AddLibraryRow = ({
 }: {
 	onAddLibrary: () => Promise<AddLibraryResult | null>;
 }) => {
+	const { t } = useTranslation();
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	return (
@@ -342,13 +350,13 @@ const AddLibraryRow = ({
 			</svg>
 			<span className={styles.rowLabels}>
 				<span className={styles.rowName}>
-					{busy ? "Adding Library…" : "Add Library…"}
+					{busy ? t("Adding Library…") : t("Add Library…")}
 				</span>
 				<span
 					className={error ? styles.rowError : styles.rowSubtitle}
 					role={error ? "alert" : undefined}
 				>
-					{error ?? "Open a Calibre library folder from your Mac"}
+					{error ?? t("Open a Calibre library folder from your Mac")}
 				</span>
 			</span>
 		</button>

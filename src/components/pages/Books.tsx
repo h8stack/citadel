@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { LibraryBook } from "@/bindings";
 import {
 	Button,
@@ -83,6 +84,7 @@ export const Books = ({
 	tag_id,
 	publisher_id,
 }: BookSearchOptions) => {
+	const { t } = useTranslation();
 	const query = useLibraryView((s) => s.query);
 	const sortOrder = useLibraryView((s) => s.sortOrder);
 	const hideRead = useLibraryView((s) => s.hideRead);
@@ -197,20 +199,21 @@ export const Books = ({
 
 	const authorTokenName =
 		author_id !== undefined
-			? (authors.find((author) => author.id === author_id)?.name ?? "Author")
+			? (authors.find((author) => author.id === author_id)?.name ?? t("Author"))
 			: undefined;
 	const seriesTokenName =
 		series_id !== undefined
-			? (seriesList.find((series) => series.id === series_id)?.name ?? "Series")
+			? (seriesList.find((series) => series.id === series_id)?.name ??
+				t("Series"))
 			: undefined;
 	const tagTokenName =
 		tag_id !== undefined
-			? (tags?.find((tag) => tag.id === tag_id)?.name ?? "Tag")
+			? (tags?.find((tag) => tag.id === tag_id)?.name ?? t("Tag"))
 			: undefined;
 	const publisherTokenName =
 		publisher_id !== undefined
 			? (publishers?.find((publisher) => publisher.id === publisher_id)?.name ??
-				"Publisher")
+				t("Publisher"))
 			: undefined;
 
 	// Tag and publisher lists load lazily; a deep link straight into a
@@ -297,37 +300,38 @@ export const Books = ({
 		...(authorTokenName !== undefined
 			? [
 					{
-						label: `Author: ${authorTokenName}`,
+						label: t("Author: {{name}}", { name: authorTokenName }),
 						onRemove: onClearDeepLinkFilter,
-						title: "Showing only books by this author",
+						title: t("Showing only books by this author"),
 					},
 				]
 			: []),
 		...(seriesTokenName !== undefined
 			? [
 					{
-						label: `Series: ${seriesTokenName}`,
+						label: t("Series: {{name}}", { name: seriesTokenName }),
 						onRemove: onClearDeepLinkFilter,
-						title:
+						title: t(
 							"Books are sorted in series order while this filter is active",
+						),
 					},
 				]
 			: []),
 		...(tagTokenName !== undefined
 			? [
 					{
-						label: `Tag: ${tagTokenName}`,
+						label: t("Tag: {{name}}", { name: tagTokenName }),
 						onRemove: onClearDeepLinkFilter,
-						title: "Showing only books with this tag",
+						title: t("Showing only books with this tag"),
 					},
 				]
 			: []),
 		...(publisherTokenName !== undefined
 			? [
 					{
-						label: `Publisher: ${publisherTokenName}`,
+						label: t("Publisher: {{name}}", { name: publisherTokenName }),
 						onRemove: onClearDeepLinkFilter,
-						title: "Showing only books from this publisher",
+						title: t("Showing only books from this publisher"),
 					},
 				]
 			: []),
@@ -343,8 +347,8 @@ export const Books = ({
 				<span className={styles.searchWrap}>
 					<SearchField
 						ref={searchInputRef}
-						placeholder={searchTokens.length > 0 ? undefined : "Search"}
-						aria-label="Search book titles and authors"
+						placeholder={searchTokens.length > 0 ? undefined : t("Search")}
+						aria-label={t("Search book titles and authors")}
 						value={query}
 						onChange={(event) => setQuery(event.currentTarget.value)}
 						className={styles.searchInput}
@@ -353,12 +357,12 @@ export const Books = ({
 				</span>
 				<Select
 					width={150}
-					aria-label="Sort order"
+					aria-label={t("Sort order")}
 					options={(
 						Object.keys(LibraryBookSortOrder) as LibraryBookSortOrderKey[]
 					).map((key) => ({
 						value: key,
-						label: SORT_LABELS[key],
+						label: t(SORT_LABELS[key]),
 					}))}
 					value={sortOrder}
 					onChange={(value) => setSortOrder(value as LibraryBookSortOrderKey)}
@@ -366,7 +370,7 @@ export const Books = ({
 				/>
 				<span className={styles.unreadToggle}>
 					<Checkbox
-						label="Unread only"
+						label={t("Unread only")}
 						checked={hideRead}
 						onCheckedChange={setHideRead}
 					/>
@@ -393,17 +397,21 @@ export const Books = ({
 					trimmedQuery.length > 0 ? (
 						<EmptyState
 							art="search"
-							title={`No books match “${trimmedQuery}”`}
-							description="Search looks at titles and authors. Check the spelling, or try fewer words."
+							title={t("No books match “{{query}}”", { query: trimmedQuery })}
+							description={t(
+								"Search looks at titles and authors. Check the spelling, or try fewer words.",
+							)}
 						>
 							<Button variant="default" onClick={() => setQuery("")}>
-								Clear Search
+								{t("Clear Search")}
 							</Button>
 						</EmptyState>
 					) : (
 						<EmptyState
-							title="No books match these filters"
-							description="Every book here is filtered out. Show all books to see the whole library."
+							title={t("No books match these filters")}
+							description={t(
+								"Every book here is filtered out. Show all books to see the whole library.",
+							)}
 						>
 							<Button
 								variant="default"
@@ -412,7 +420,7 @@ export const Books = ({
 									onClearDeepLinkFilter();
 								}}
 							>
-								Show all books
+								{t("Show all books")}
 							</Button>
 						</EmptyState>
 					)
@@ -431,10 +439,13 @@ export const Books = ({
 			<div className={styles.footer}>
 				<span className={styles.footerText}>
 					{loading
-						? "Loading books…"
+						? t("Loading books…")
 						: libraryTotal === null || total === libraryTotal
-							? `${total} books`
-							: `${total} of ${libraryTotal} books`}
+							? t("{{total}} books", { total })
+							: t("{{total}} of {{libraryTotal}} books", {
+									total,
+									libraryTotal,
+								})}
 				</span>
 			</div>
 			<Drawer
@@ -483,6 +494,7 @@ const SaveAsShelfControl = ({
 	hideRead,
 	routeFilters,
 }: SaveAsShelfControlProps) => {
+	const { t } = useTranslation();
 	const applyShelf = useLibraryView((s) => s.applyShelf);
 	const libraryId = useLibrarySelection().activeLibrary?.id;
 	const bookmarkButtonRef = useRef<HTMLButtonElement>(null);
@@ -498,10 +510,12 @@ const SaveAsShelfControl = ({
 	};
 
 	const summary = [
-		...(hasRouteFilters(routeFilters) ? ["this view's filter"] : []),
-		query.trim().length > 0 ? `search "${query.trim()}"` : "no search",
-		`sorted by ${SORT_LABELS[sortOrder]}`,
-		hideRead ? "hiding read books" : "showing read books",
+		...(hasRouteFilters(routeFilters) ? [t("this view's filter")] : []),
+		query.trim().length > 0
+			? t('search "{{query}}"', { query: query.trim() })
+			: t("no search"),
+		t("sorted by {{order}}", { order: t(SORT_LABELS[sortOrder]) }),
+		hideRead ? t("hiding read books") : t("showing read books"),
 	].join(", ");
 
 	const save = async () => {
@@ -526,11 +540,11 @@ const SaveAsShelfControl = ({
 
 	return (
 		<>
-			<Tooltip label="Save as shelf…">
+			<Tooltip label={t("Save as shelf…")}>
 				<IconButton
 					ref={bookmarkButtonRef}
 					className={styles.shelfButton}
-					aria-label="Save as shelf"
+					aria-label={t("Save as shelf")}
 					onClick={() => setIsOpen(true)}
 				>
 					<F7Bookmark style={{ fontSize: 15 }} />
@@ -541,7 +555,7 @@ const SaveAsShelfControl = ({
 				onOpenChange={(open) => {
 					if (!open) close();
 				}}
-				title="Save as shelf"
+				title={t("Save as shelf")}
 				width={420}
 				onCloseAutoFocus={(event) => {
 					// The sheet has no Dialog.Trigger; return focus to the bookmark
@@ -552,8 +566,8 @@ const SaveAsShelfControl = ({
 			>
 				<div className={styles.shelfForm}>
 					<TextInput
-						placeholder="Shelf name"
-						aria-label="Shelf name"
+						placeholder={t("Shelf name")}
+						aria-label={t("Shelf name")}
 						// biome-ignore lint/a11y/noAutofocus: the sheet exists to name the shelf; focus must land in the field.
 						autoFocus
 						value={name}
@@ -569,18 +583,18 @@ const SaveAsShelfControl = ({
 						}}
 					/>
 					<span className={styles.shelfFormHint}>
-						Saves the current filters: {summary}.
+						{t("Saves the current filters: {{summary}}.", { summary })}
 					</span>
 					<div className={styles.shelfFormActions}>
 						<Button variant="default" onClick={close}>
-							Cancel
+							{t("Cancel")}
 						</Button>
 						<Button
 							variant="primary"
 							onClick={() => void save()}
 							disabled={name.trim().length === 0}
 						>
-							Save
+							{t("Save")}
 						</Button>
 					</div>
 				</div>

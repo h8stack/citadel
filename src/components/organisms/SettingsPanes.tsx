@@ -1,5 +1,6 @@
 import type { KeyboardEvent, ReactNode } from "react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { F7BookFill } from "@/components/icons/F7BookFill";
 import { F7Gear } from "@/components/icons/F7Gear";
 import { F7Wifi } from "@/components/icons/F7Wifi";
@@ -26,6 +27,13 @@ import {
 	Tooltip,
 } from "@/components/ui";
 import { useLibrarySelection } from "@/lib/hooks/use-library-selection";
+import { applyLanguage } from "@/lib/i18n";
+import {
+	DEFAULT_LANGUAGE,
+	LANGUAGE_NAMES,
+	Language,
+	isLanguage,
+} from "@/lib/i18n/language";
 import { useProviderCredential } from "@/lib/hooks/use-provider-credentials";
 import { useBrowserSessionControls } from "@/lib/hooks/use-browser-session";
 import { useServerAddresses } from "@/lib/hooks/use-server-addresses";
@@ -56,6 +64,7 @@ const SETTINGS_TABS = [
 ] as const;
 type SettingsTab = (typeof SETTINGS_TABS)[number];
 
+/** The tabs' labels are English source copy; the strip translates them. */
 const TAB_META: Record<
 	SettingsTab,
 	{ label: string; icon: (className: string | undefined) => ReactNode }
@@ -87,6 +96,7 @@ const TAB_META: Record<
  * overlay its left edge.
  */
 export const SettingsPanes = () => {
+	const { t } = useTranslation();
 	const platform = usePlatform();
 	const [activeTab, setActiveTab] = useState<SettingsTab>("general");
 
@@ -154,7 +164,7 @@ export const SettingsPanes = () => {
 		<div className={classes.pane}>
 			<div
 				role="tablist"
-				aria-label="Settings sections"
+				aria-label={t("Settings sections")}
 				className={classes.tabStrip}
 				data-tauri-drag-region
 			>
@@ -177,7 +187,7 @@ export const SettingsPanes = () => {
 						<span className={classes.tabIcon} aria-hidden="true">
 							{TAB_META[tab].icon(classes.tabIconGlyph)}
 						</span>
-						<span className={classes.tabLabel}>{TAB_META[tab].label}</span>
+						<span className={classes.tabLabel}>{t(TAB_META[tab].label)}</span>
 					</button>
 				))}
 			</div>
@@ -254,8 +264,11 @@ const SettingsRow = ({
 };
 
 const GeneralTab = () => {
+	const { t } = useTranslation();
 	const theme = useSettings((state) => state.theme);
 	const setTheme = useSettings((state) => state.setTheme);
+	const language = useSettings((state) => state.language);
+	const setLanguage = useSettings((state) => state.setLanguage);
 	const autoUpdateCheckingEnabled = useSettings(
 		(state) => state.autoUpdateCheckingEnabled,
 	);
@@ -279,21 +292,44 @@ const GeneralTab = () => {
 		[setTheme],
 	);
 
+	const applyLanguageSetting = useCallback(
+		(value: string) => {
+			const next = isLanguage(value) ? value : DEFAULT_LANGUAGE;
+			applyLanguage(next);
+			void setLanguage(next);
+		},
+		[setLanguage],
+	);
+
 	return (
 		<div className={classes.groups}>
 			{administrator && <ServerProblemsNotice />}
 			<div className={classes.group}>
 				<SettingsRow
-					label="Appearance"
+					label={t("Appearance")}
 					control={
 						<SegmentedControl
-							aria-label="Appearance"
+							aria-label={t("Appearance")}
 							value={theme}
 							onChange={applyTheme}
 							items={[
-								{ value: "auto", label: "Auto" },
-								{ value: "light", label: "Light" },
-								{ value: "dark", label: "Dark" },
+								{ value: "auto", label: t("Auto") },
+								{ value: "light", label: t("Light") },
+								{ value: "dark", label: t("Dark") },
+							]}
+						/>
+					}
+				/>
+				<SettingsRow
+					label={t("Language")}
+					control={
+						<SegmentedControl
+							aria-label={t("Language")}
+							value={language}
+							onChange={applyLanguageSetting}
+							items={[
+								{ value: Language.vietnamese, label: LANGUAGE_NAMES.vi },
+								{ value: Language.english, label: LANGUAGE_NAMES.en },
 							]}
 						/>
 					}
@@ -305,7 +341,7 @@ const GeneralTab = () => {
 				<div className={classes.group}>
 					{supportsAutoUpdates && (
 						<SettingsRow
-							label="Check for updates automatically"
+							label={t("Check for updates automatically")}
 							htmlFor={autoUpdateSwitchId}
 							control={
 								<Switch
@@ -340,6 +376,7 @@ const GeneralTab = () => {
  * /api/health for the full picture.
  */
 const ServerProblemsNotice = () => {
+	const { t } = useTranslation();
 	const { health } = useServerHealth();
 	const problems = health
 		? healthChecksInOrder(health.checks).filter(
@@ -351,14 +388,14 @@ const ServerProblemsNotice = () => {
 		<section
 			className={classes.problems}
 			data-status={health?.status}
-			aria-label="Citadel needs attention"
+			aria-label={t("Citadel needs attention")}
 		>
-			<h3 className={classes.problemsTitle}>Citadel needs attention</h3>
+			<h3 className={classes.problemsTitle}>{t("Citadel needs attention")}</h3>
 			<ul className={classes.problemsList}>
 				{problems.map((check) => (
 					<li key={check.name}>
 						<span className={classes.problemName}>
-							{healthCheckLabel(check)}
+							{healthCheckLabel(check, (label) => t(label))}
 						</span>
 						{check.detail && (
 							<span className={classes.problemDetail}>{check.detail}</span>
@@ -372,6 +409,7 @@ const ServerProblemsNotice = () => {
 
 /** Where people reach this server. Set by whoever runs it, not from here. */
 const ServerAddressesSection = () => {
+	const { t } = useTranslation();
 	const { addresses, error } = useServerAddresses();
 	const headingId = useId();
 	const always = addresses?.alwaysIncluded ?? null;
@@ -379,21 +417,22 @@ const ServerAddressesSection = () => {
 		addresses?.addresses.filter((address) => address.url !== always) ?? [];
 	const current = addresses?.current ?? null;
 	const where = addresses?.configFile
-		? `add publicUrls to ${addresses.configFile}`
-		: "set CITADEL_PUBLIC_URLS in the server’s environment";
+		? t("add publicUrls to {{file}}", { file: addresses.configFile })
+		: t("set CITADEL_PUBLIC_URLS in the server’s environment");
 	return (
 		<section aria-labelledby={headingId}>
 			<h3 id={headingId} className={classes.sectionTitle}>
 				{addresses && listed.length === 0
-					? "Public URLs"
-					: "Configured public URLs"}
+					? t("Public URLs")
+					: t("Configured public URLs")}
 			</h3>
 			{addresses &&
 				(listed.length > 0 ? (
 					<>
 						<p className={classes.paneNote}>
-							Only traffic sent to these URLs is accepted by Citadel. To add
-							more, update the server’s configuration.
+							{t(
+								"Only traffic sent to these URLs is accepted by Citadel. To add more, update the server’s configuration.",
+							)}
 						</p>
 						<ul className={classes.urlWell}>
 							{listed.map((address) => (
@@ -414,8 +453,10 @@ const ServerAddressesSection = () => {
 					</>
 				) : (
 					<p className={classes.paneNote}>
-						None are configured, so Citadel accepts traffic at any URL. To limit
-						it, {where}, then restart the server.
+						{t(
+							"None are configured, so Citadel accepts traffic at any URL. To limit it, {{where}}, then restart the server.",
+							{ where },
+						)}
 					</p>
 				))}
 			{error && (
@@ -437,61 +478,65 @@ const PublicUrlLine = ({
 	url,
 	current,
 	always = false,
-}: PublicUrlLineProps) => (
-	<li className={classes.urlLine} data-always={always || undefined}>
-		<GlobeGlyph />
-		<span className={classes.urlText}>{url}</span>
-		{current && <span className={classes.currentPill}>current</span>}
-		{always && (
-			<Tooltip label="Always included" openDelay={150}>
-				<button
-					type="button"
-					className={classes.alwaysInfo}
-					aria-label="Always included"
-				>
-					<svg
-						width="16"
-						height="16"
-						viewBox="0 0 16 16"
-						fill="none"
-						aria-hidden="true"
+}: PublicUrlLineProps) => {
+	const { t } = useTranslation();
+	return (
+		<li className={classes.urlLine} data-always={always || undefined}>
+			<GlobeGlyph />
+			<span className={classes.urlText}>{url}</span>
+			{current && <span className={classes.currentPill}>{t("current")}</span>}
+			{always && (
+				<Tooltip label={t("Always included")} openDelay={150}>
+					<button
+						type="button"
+						className={classes.alwaysInfo}
+						aria-label={t("Always included")}
 					>
-						<circle
-							cx="8"
-							cy="8"
-							r="7.25"
-							stroke="currentColor"
-							strokeOpacity="0.55"
-							strokeWidth="1"
-						/>
-						<circle cx="8" cy="4.9" r="0.95" fill="currentColor" />
-						<path
-							d="M8 7.2v4.4"
-							stroke="currentColor"
-							strokeWidth="1.5"
-							strokeLinecap="round"
-						/>
-					</svg>
-				</button>
-			</Tooltip>
-		)}
-	</li>
-);
+						<svg
+							width="16"
+							height="16"
+							viewBox="0 0 16 16"
+							fill="none"
+							aria-hidden="true"
+						>
+							<circle
+								cx="8"
+								cy="8"
+								r="7.25"
+								stroke="currentColor"
+								strokeOpacity="0.55"
+								strokeWidth="1"
+							/>
+							<circle cx="8" cy="4.9" r="0.95" fill="currentColor" />
+							<path
+								d="M8 7.2v4.4"
+								stroke="currentColor"
+								strokeWidth="1.5"
+								strokeLinecap="round"
+							/>
+						</svg>
+					</button>
+				</Tooltip>
+			)}
+		</li>
+	);
+};
 
 const LibraryTab = () => {
+	const { t } = useTranslation();
 	const { libraries, activeLibrary, switchTo, adoptLibrary } =
 		useLibrarySelection();
 	const platform = usePlatform();
 
 	const addLibrary = useCallback(async (): Promise<AddLibraryResult | null> => {
 		const path = await platform.dialogs.openDirectory({
-			title: "Choose a Calibre Library Folder",
+			title: t("Choose a Calibre Library Folder"),
 		});
 		if (path === null) return null;
 		// Settings stays open, as when switching from the list: the new
 		// library's row becomes current once it has opened.
 		return adoptLibrary(path);
-	}, [platform, adoptLibrary]);
+	}, [platform, adoptLibrary, t]);
 
 	const revealActiveLibrary = useCallback(() => {
 		if (!activeLibrary) return;
@@ -501,7 +546,7 @@ const LibraryTab = () => {
 	if (!activeLibrary) {
 		return (
 			<p className={classes.paneNote}>
-				Something went wrong loading your libraries.
+				{t("Something went wrong loading your libraries.")}
 			</p>
 		);
 	}
@@ -535,11 +580,19 @@ interface ProviderRowShellProps {
 	id: ProviderId;
 	/** Shown under the name only where a provider needs setting up. */
 	status: string | null;
+	/** No usable key yet: offer the key field instead of the switch. */
+	needsSetup?: boolean;
 	children: ReactNode;
 }
 
 /** A source's name, status and switch over an expandable body. */
-const ProviderRowShell = ({ id, status, children }: ProviderRowShellProps) => {
+const ProviderRowShell = ({
+	id,
+	status,
+	needsSetup = false,
+	children,
+}: ProviderRowShellProps) => {
+	const { t } = useTranslation();
 	const descriptor = getDescriptor(id);
 	const enabled = useSettings(
 		(state) => state.metadataProviders.configs[id]?.enabled ?? false,
@@ -556,7 +609,15 @@ const ProviderRowShell = ({ id, status, children }: ProviderRowShellProps) => {
 					type="button"
 					className={classes.providerDisclosure}
 					aria-expanded={expanded}
-					aria-label={`${expanded ? "Collapse" : "Expand"} ${descriptor.displayName}`}
+					aria-label={
+						expanded
+							? t("Collapse {{provider}}", {
+									provider: descriptor.displayName,
+								})
+							: t("Expand {{provider}}", {
+									provider: descriptor.displayName,
+								})
+					}
 					onClick={() => setExpanded((open) => !open)}
 				>
 					<span className={classes.providerChevron} data-open={expanded}>
@@ -567,17 +628,19 @@ const ProviderRowShell = ({ id, status, children }: ProviderRowShellProps) => {
 					<span className={classes.rowLabel}>{descriptor.displayName}</span>
 					{status && <span className={classes.rowDescription}>{status}</span>}
 				</div>
-				{status === "Requires setup" && !enabled ? (
+				{needsSetup && !enabled ? (
 					// Switching on a source that has no key would do nothing; the
 					// one useful step is the key, so offer that instead.
 					<Button variant="default" onClick={() => setExpanded(true)}>
-						Add Key…
+						{t("Add Key…")}
 					</Button>
 				) : (
 					<Switch
 						id={switchId}
 						checked={enabled}
-						aria-label={`Enable ${descriptor.displayName}`}
+						aria-label={t("Enable {{provider}}", {
+							provider: descriptor.displayName,
+						})}
 						onCheckedChange={(checked) => void setProviderEnabled(id, checked)}
 					/>
 				)}
@@ -585,12 +648,12 @@ const ProviderRowShell = ({ id, status, children }: ProviderRowShellProps) => {
 			{expanded && (
 				<div className={classes.providerBody}>
 					<p className={classes.rowDescription}>
-						{descriptor.blurb}
+						{t(descriptor.blurb)}
 						{keyHelpUrl && (
 							<>
 								{" "}
 								<InlineLink href={keyHelpUrl} isExternal>
-									How to get a key
+									{t("How to get a key")}
 								</InlineLink>
 							</>
 						)}
@@ -605,8 +668,13 @@ const ProviderRowShell = ({ id, status, children }: ProviderRowShellProps) => {
 /** A keyed source whose key the signed-in user keeps on the server. */
 const ServerKeyProviderRow = ({ id }: { id: ProviderId }) => {
 	const controller = useProviderCredential(id);
+	const status = serverKeyStatus(controller);
 	return (
-		<ProviderRowShell id={id} status={serverKeyStatus(controller)}>
+		<ProviderRowShell
+			id={id}
+			status={status.label}
+			needsSetup={status.needsSetup}
+		>
 			<ServerProviderKey id={id} controller={controller} />
 		</ProviderRowShell>
 	);
@@ -614,6 +682,7 @@ const ServerKeyProviderRow = ({ id }: { id: ProviderId }) => {
 
 /** A source used straight from this app, with its key (if any) kept here. */
 const LocalProviderRow = ({ id }: { id: ProviderId }) => {
+	const { t } = useTranslation();
 	const descriptor = getDescriptor(id);
 	const config = useSettings((state) => state.metadataProviders.configs[id]);
 	const setProviderConfig = useSettings((state) => state.setProviderConfig);
@@ -627,7 +696,12 @@ const LocalProviderRow = ({ id }: { id: ProviderId }) => {
 	const [isTesting, setIsTesting] = useState(false);
 	const [testResult, setTestResult] = useState<TestResult | null>(null);
 
-	const status = requiresKey ? (hasKey ? "Key saved" : "Requires setup") : null;
+	const needsSetup = requiresKey && !hasKey;
+	const status = requiresKey
+		? hasKey
+			? t("Key saved")
+			: t("Requires setup")
+		: null;
 
 	const handleTest = useCallback(async () => {
 		setIsTesting(true);
@@ -638,19 +712,19 @@ const LocalProviderRow = ({ id }: { id: ProviderId }) => {
 			});
 			setTestResult({
 				success: result.ok,
-				message: result.ok ? "Reachable." : result.message,
+				message: result.ok ? t("Reachable.") : result.message,
 			});
 		} catch (error) {
 			setTestResult({
 				success: false,
-				message: `Error: ${
-					error instanceof Error ? error.message : String(error)
-				}`,
+				message: t("Error: {{message}}", {
+					message: error instanceof Error ? error.message : String(error),
+				}),
 			});
 		} finally {
 			setIsTesting(false);
 		}
-	}, [id, requiresKey, apiKeyInput]);
+	}, [id, requiresKey, apiKeyInput, t]);
 
 	const handleSaveKey = useCallback(async () => {
 		await setProviderConfig(id, {
@@ -667,7 +741,7 @@ const LocalProviderRow = ({ id }: { id: ProviderId }) => {
 	}, [id, setProviderConfig]);
 
 	return (
-		<ProviderRowShell id={id} status={status}>
+		<ProviderRowShell id={id} status={status} needsSetup={needsSetup}>
 			{requiresKey ? (
 				<form
 					className={classes.keyForm}
@@ -680,8 +754,10 @@ const LocalProviderRow = ({ id }: { id: ProviderId }) => {
 						className={classes.keyInput}
 						type="password"
 						autoComplete="off"
-						placeholder="API key"
-						aria-label={`${descriptor.displayName} API key`}
+						placeholder={t("API key")}
+						aria-label={t("{{provider}} API key", {
+							provider: descriptor.displayName,
+						})}
 						value={apiKeyInput}
 						onChange={(event) => setApiKeyInput(event.currentTarget.value)}
 					/>
@@ -691,21 +767,21 @@ const LocalProviderRow = ({ id }: { id: ProviderId }) => {
 							disabled={!apiKeyInput || isTesting}
 							onClick={() => void handleClearKey()}
 						>
-							Clear
+							{t("Clear")}
 						</Button>
 						<Button
 							variant="default"
 							disabled={!apiKeyInput || isTesting}
 							onClick={() => void handleTest()}
 						>
-							{isTesting ? "Testing…" : "Test"}
+							{isTesting ? t("Testing…") : t("Test")}
 						</Button>
 						<Button
 							variant="primary"
 							type="submit"
 							disabled={!apiKeyInput || isTesting}
 						>
-							Save
+							{t("Save")}
 						</Button>
 					</div>
 				</form>
@@ -716,7 +792,7 @@ const LocalProviderRow = ({ id }: { id: ProviderId }) => {
 						disabled={isTesting}
 						onClick={() => void handleTest()}
 					>
-						{isTesting ? "Testing…" : "Test"}
+						{isTesting ? t("Testing…") : t("Test")}
 					</Button>
 				</div>
 			)}
@@ -741,6 +817,7 @@ const ProviderRow = ({ id }: { id: ProviderId }) =>
 	);
 
 const IntegrationsTab = () => {
+	const { t } = useTranslation();
 	const preferenceOrder = useSettings(
 		(state) => state.metadataProviders.preferenceOrder,
 	);
@@ -757,8 +834,9 @@ const IntegrationsTab = () => {
 		<div className={classes.groups}>
 			<div>
 				<p className={classes.paneNote}>
-					Search these sources for titles, authors and other details when you
-					add or edit a book.
+					{t(
+						"Search these sources for titles, authors and other details when you add or edit a book.",
+					)}
 				</p>
 				<div className={classes.group}>
 					{preferenceOrder.map((id) => (
@@ -769,12 +847,12 @@ const IntegrationsTab = () => {
 			<div>
 				<div className={classes.group}>
 					<SettingsRow
-						label="Search automatically when adding books"
+						label={t("Search automatically when adding books")}
 						htmlFor={autoLookupSwitchId}
 						description={
 							anySourceEnabled
-								? "For files that include an ISBN."
-								: "Turn on a source above to use this."
+								? t("For files that include an ISBN.")
+								: t("Turn on a source above to use this.")
 						}
 						control={
 							<Switch

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Button, InlineLink, ProgressBar, Spinner } from "@/components/ui";
 import {
 	type SoftwareUpdateControl,
@@ -56,24 +57,25 @@ const Control = ({
 }: Omit<SoftwareUpdateRowProps, "state"> & {
 	control: SoftwareUpdateControl;
 }) => {
+	const { t } = useTranslation();
 	switch (control.kind) {
 		case "check":
 			return (
 				<>
 					{control.checking && (
-						<Spinner size={14} aria-label="Checking for updates" />
+						<Spinner size={14} aria-label={t("Checking for updates")} />
 					)}
 					<Button disabled={control.checking} onClick={onCheck}>
-						Check for Updates
+						{t("Check for Updates")}
 					</Button>
 				</>
 			);
 		case "later":
-			return <Button onClick={onLater}>Later</Button>;
+			return <Button onClick={onLater}>{t("Later")}</Button>;
 		case "updateNow":
 			return (
 				<Button variant="primary" onClick={onUpdateNow}>
-					Update Now
+					{t("Update Now")}
 				</Button>
 			);
 		case "progress":
@@ -81,23 +83,25 @@ const Control = ({
 				<ProgressBar
 					className={styles.progress}
 					value={control.value}
-					aria-label={`Downloading Citadel ${control.version}`}
+					aria-label={t("Downloading Citadel {{version}}", {
+						version: control.version,
+					})}
 				/>
 			);
 		case "restartNow":
 			return (
 				<Button variant="primary" onClick={onRestartNow}>
-					Restart Now
+					{t("Restart Now")}
 				</Button>
 			);
 		case "retryCheck":
-			return <Button onClick={onCheck}>Try Again</Button>;
+			return <Button onClick={onCheck}>{t("Try Again")}</Button>;
 		case "retryUpdate":
-			return <Button onClick={onUpdateNow}>Try Again</Button>;
+			return <Button onClick={onUpdateNow}>{t("Try Again")}</Button>;
 		case "releaseNotes":
 			return (
 				<InlineLink href={control.url} isExternal className={styles.link}>
-					Release notes
+					{t("Release notes")}
 				</InlineLink>
 			);
 	}

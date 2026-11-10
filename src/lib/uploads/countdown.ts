@@ -1,3 +1,5 @@
+import i18next from "@/lib/i18n";
+
 /** The last part of the review window, when the countdown asks for attention. */
 const URGENT_FRACTION = 0.25;
 
@@ -10,6 +12,10 @@ export interface Countdown {
 
 const DAY = 24 * 60 * 60_000;
 
+/** Locale for formatted dates; falls back to the active UI language. */
+const localeFor = (locale?: string): string =>
+	locale ?? (i18next.language === "vi" ? "vi-VN" : "en-US");
+
 const startOfDay = (date: Date): number =>
 	new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 
@@ -19,19 +25,20 @@ export const describeDeadline = (
 	now: Date,
 	locale?: string,
 ): string => {
-	const time = deadline.toLocaleTimeString(locale, {
+	const resolved = localeFor(locale);
+	const time = deadline.toLocaleTimeString(resolved, {
 		hour: "numeric",
 		minute: "2-digit",
 	});
 	const days = Math.round((startOfDay(deadline) - startOfDay(now)) / DAY);
-	if (days <= 0) return `${time} today`;
-	if (days === 1) return `${time} tomorrow`;
-	const date = deadline.toLocaleDateString(locale, {
+	if (days <= 0) return i18next.t("{{time}} today", { time });
+	if (days === 1) return i18next.t("{{time}} tomorrow", { time });
+	const date = deadline.toLocaleDateString(resolved, {
 		weekday: "short",
 		day: "numeric",
 		month: "short",
 	});
-	return `${time} on ${date}`;
+	return i18next.t("{{time}} on {{date}}", { time, date });
 };
 
 /** How much of an upload's review window is left. */
@@ -48,7 +55,9 @@ export const countdown = (
 	return {
 		urgent: !expired && remainingMs / windowMs < URGENT_FRACTION,
 		description: expired
-			? "These drafts have expired"
-			: `Drafts kept until ${describeDeadline(deadline, now, locale)}`,
+			? i18next.t("These drafts have expired")
+			: i18next.t("Drafts kept until {{deadline}}", {
+					deadline: describeDeadline(deadline, now, locale),
+				}),
 	};
 };

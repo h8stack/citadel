@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import i18next from "@/lib/i18n";
 import { libraryCatalog } from "@/lib/services/library-catalog";
 import { toast } from "@/components/ui";
 import { ADOPT_INVALID_ERROR } from "@/lib/first-run/machine";
@@ -55,8 +56,8 @@ export const useLibrarySelection = (): LibrarySelection => {
 				if (!valid) {
 					toast.show({
 						id: INVALID_LIBRARY_TOAST_ID,
-						title: "Not a Calibre library",
-						message: ADOPT_INVALID_ERROR,
+						title: i18next.t("Not a Calibre library"),
+						message: i18next.t(ADOPT_INVALID_ERROR),
 					});
 					return;
 				}
@@ -65,7 +66,7 @@ export const useLibrarySelection = (): LibrarySelection => {
 				console.error("Library switch failed:", error);
 				toast.show({
 					id: INVALID_LIBRARY_TOAST_ID,
-					title: "Couldn't switch libraries",
+					title: i18next.t("Couldn't switch libraries"),
 					message: error instanceof Error ? error.message : String(error),
 				});
 			}
@@ -76,7 +77,7 @@ export const useLibrarySelection = (): LibrarySelection => {
 	const adoptLibrary = useCallback(
 		async (absolutePath: string): Promise<AdoptLibraryResult> => {
 			const valid = await libraryCatalog.isValid(absolutePath);
-			if (!valid) return { ok: false, message: ADOPT_INVALID_ERROR };
+			if (!valid) return { ok: false, message: i18next.t(ADOPT_INVALID_ERROR) };
 			const newLibraryId = await createLibrary(absolutePath);
 			await setActiveLibrary(newLibraryId);
 			return { ok: true };

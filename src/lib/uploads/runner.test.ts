@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import i18next from "@/lib/i18n";
 import { UploadError, UploadFailure } from "@/lib/services/library";
 import { createFakeUploads, type FakeUploadsOptions } from "./fake-uploads";
 import {
@@ -53,6 +54,10 @@ const setup = (options: FakeUploadsOptions = {}) => {
 };
 
 describe("upload runner", () => {
+	beforeEach(async () => {
+		await i18next.changeLanguage("en");
+	});
+
 	it("restores limits and finished uploads, discarding unfinished ones", async () => {
 		const queue = setup({ limits: { maxFileBytes: 50 } });
 		const finished = queue.fake.seed("Finished.epub", 10, true);

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 import styles from "./ProgressBar.module.css";
 
 export interface ProgressBarProps {
@@ -12,15 +13,16 @@ export interface ProgressBarProps {
 export const ProgressBar = ({
 	value,
 	className,
-	"aria-label": ariaLabel = "Progress",
+	"aria-label": ariaLabel,
 }: ProgressBarProps) => {
+	const { t } = useTranslation();
 	const clamped = value === null ? null : Math.min(Math.max(value, 0), 1);
 
 	return (
 		<div
 			className={clsx(styles.track, className)}
 			role="progressbar"
-			aria-label={ariaLabel}
+			aria-label={ariaLabel ?? t("Progress")}
 			aria-valuemin={0}
 			aria-valuemax={100}
 			aria-valuenow={clamped === null ? undefined : Math.round(clamped * 100)}

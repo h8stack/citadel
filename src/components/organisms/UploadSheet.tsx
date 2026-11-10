@@ -1,6 +1,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import clsx from "clsx";
 import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { PlusGlyph, UploadGlyph } from "@/components/icons/UploadGlyphs";
 import { UploadQueueRow } from "@/components/molecules/UploadQueueRow";
 import { UploadReview } from "@/components/molecules/UploadReview";
@@ -66,11 +67,12 @@ export const UploadSheet = ({
 	onAddAll,
 	onCancelAll,
 }: UploadSheetProps) => {
+	const { t } = useTranslation();
 	const bodyRef = useRef<HTMLDivElement>(null);
 	const firstReady = items.find((item) => item.phase === UploadPhase.ready);
 	const cancelHint = local
-		? "Hold to stop adding these books"
-		: "Hold to cancel all uploads";
+		? t("Hold to stop adding these books")
+		: t("Hold to cancel all uploads");
 	useFollowNewest(bodyRef, reviewing ? 0 : items.length);
 	return (
 		<Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -89,21 +91,24 @@ export const UploadSheet = ({
 					>
 						<Dialog.Close asChild>
 							<button type="button" className={styles.done}>
-								Done
+								{t("Done")}
 							</button>
 						</Dialog.Close>
 						<Dialog.Title className={styles.title}>
-							{reviewing ? "Review Book" : "Add Books"}
+							{reviewing ? t("Review Book") : t("Add Books")}
 						</Dialog.Title>
 						{!reviewing && summary.ready > 0 && (
 							<span className={styles.status}>
-								{summary.ready} of {items.length} ready
+								{t("{{ready}} of {{total}} ready", {
+									ready: summary.ready,
+									total: items.length,
+								})}
 							</span>
 						)}
 						{!reviewing && items.length > 0 && (
 							<IconButton
 								className={styles.addMore}
-								aria-label="Choose more books"
+								aria-label={t("Choose more books")}
 								onClick={onChooseFiles}
 							>
 								<PlusGlyph />
@@ -131,7 +136,7 @@ export const UploadSheet = ({
 								{items.length > 0 && (
 									<ul
 										className={styles.list}
-										aria-label={local ? "Books to add" : "Uploads"}
+										aria-label={local ? t("Books to add") : t("Uploads")}
 									>
 										{items.map((item) => (
 											<UploadQueueRow
@@ -146,7 +151,7 @@ export const UploadSheet = ({
 								)}
 								{paused && (
 									<p className={styles.paused} role="status">
-										{paused}
+										{t(paused)}
 									</p>
 								)}
 								{items.length > 0 ? (
@@ -158,14 +163,16 @@ export const UploadSheet = ({
 										>
 											<PlusGlyph className={styles.plus} />
 											<span>
-												Drop more books here or{" "}
-												<span className={styles.link}>choose files</span>
+												{t("Drop more books here or")}{" "}
+												<span className={styles.link}>{t("choose files")}</span>
 											</span>
 										</button>
 										<HoldButton
 											className={styles.cancelRow}
 											label={
-												local ? "Cancel Adding Books" : "Cancel All Uploads"
+												local
+													? t("Cancel Adding Books")
+													: t("Cancel All Uploads")
 											}
 											hint={cancelHint}
 											onConfirm={onCancelAll}
@@ -175,16 +182,18 @@ export const UploadSheet = ({
 									<div className={styles.empty}>
 										<UploadGlyph className={styles.emptyGlyph} />
 										<p className={styles.emptyTitle}>
-											Add books to your library
+											{t("Add books to your library")}
 										</p>
 										<p className={styles.emptyHint}>
 											<span className={styles.wideOnly}>
-												Drop books anywhere on the window, or choose them from
-												your files.
+												{t(
+													"Drop books anywhere on the window, or choose them from your files.",
+												)}
 											</span>
 											<span className={styles.narrowOnly}>
-												Choose books from your files to{" "}
-												{local ? "add them" : "upload them"}.
+												{local
+													? t("Choose books from your files to add them.")
+													: t("Choose books from your files to upload them.")}
 											</span>
 										</p>
 										<Button
@@ -192,7 +201,7 @@ export const UploadSheet = ({
 											className={styles.choose}
 											onClick={onChooseFiles}
 										>
-											Choose Books
+											{t("Choose Books")}
 										</Button>
 									</div>
 								)}
@@ -205,7 +214,7 @@ export const UploadSheet = ({
 							{/* Held, not clicked: it throws away everything uploaded. */}
 							<HoldButton
 								className={styles.cancelAll}
-								label="Cancel All"
+								label={t("Cancel All")}
 								hint={cancelHint}
 								onConfirm={onCancelAll}
 							/>
@@ -213,7 +222,7 @@ export const UploadSheet = ({
 							{/* Reviewing first is the way in; adding everything as the
 							    files describe it is the shortcut. */}
 							<Button disabled={firstReady === undefined} onClick={onAddAll}>
-								Add All
+								{t("Add All")}
 							</Button>
 							<Button
 								variant="primary"
@@ -221,18 +230,30 @@ export const UploadSheet = ({
 								onClick={() => firstReady && onReview(firstReady.key)}
 							>
 								{summary.ready === 0
-									? "Review Books"
+									? t("Review Books")
 									: summary.ready === 1
-										? "Review 1 Book"
-										: `Review ${summary.ready} Books`}
+										? t("Review 1 Book")
+										: t("Review {{count}} Books", { count: summary.ready })}
 							</Button>
 						</div>
 					)}
 					<p className={styles.live} aria-live="polite">
 						{summary.active > 0
-							? `${local ? "Reading" : "Uploading"} ${summary.active} ${summary.active === 1 ? "book" : "books"}`
+							? local
+								? t(
+										summary.active === 1
+											? "Reading {{count}} book"
+											: "Reading {{count}} books",
+										{ count: summary.active },
+									)
+								: t(
+										summary.active === 1
+											? "Uploading {{count}} book"
+											: "Uploading {{count}} books",
+										{ count: summary.active },
+									)
 							: summary.ready > 0
-								? `${summary.ready} ready to review`
+								? t("{{count}} ready to review", { count: summary.ready })
 								: ""}
 					</p>
 				</Dialog.Content>

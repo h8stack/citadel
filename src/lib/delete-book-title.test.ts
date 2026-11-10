@@ -1,7 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import i18next from "@/lib/i18n";
 import { deleteBookCopy } from "./delete-book-title";
 
 describe("deleteBookCopy", () => {
+	beforeEach(async () => {
+		await i18next.changeLanguage("en");
+	});
 	it("offers recovery from the Trash on desktop", () => {
 		const copy = deleteBookCopy("trash");
 		expect(copy.confirmLabel).toBe("Move to Trash");

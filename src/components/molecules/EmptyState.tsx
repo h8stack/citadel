@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { useAddBook } from "@/components/organisms/AddBook";
 import { Button } from "@/components/ui";
 import { safeAsyncEventHandler } from "@/lib/async";
@@ -96,6 +97,7 @@ export const EmptyState = ({
  * state after creating a new library in the first-run flow.
  */
 export const EmptyLibrary = () => {
+	const { t } = useTranslation();
 	const { startAddBook, canAddBook } = useAddBook();
 	const openSettings = useOpenSettings();
 	const platform = usePlatform();
@@ -105,18 +107,22 @@ export const EmptyLibrary = () => {
 
 	return (
 		<EmptyState
-			title="Your library is empty"
+			title={t("Your library is empty")}
 			description={
 				path !== null
-					? `Books you add are copied into your library at ${abbreviateHomePath(path, home)}.`
+					? t("Books you add are copied into your library at {{path}}.", {
+							path: abbreviateHomePath(path, home),
+						})
 					: canAddBook
-						? "Add a book to this library, or switch to an existing Calibre library."
-						: "Switch to an existing Calibre library to get started."
+						? t(
+								"Add a book to this library, or switch to an existing Calibre library.",
+							)
+						: t("Switch to an existing Calibre library to get started.")
 			}
 		>
 			{canAddBook && (
 				<Button variant="primary" onClick={startAddBook}>
-					Add Book…
+					{t("Add Book…")}
 				</Button>
 			)}
 			{path !== null && platform.capabilities.canRevealInFileManager && (
@@ -126,11 +132,11 @@ export const EmptyLibrary = () => {
 						await platform.fileOpener.revealInFileManager(path);
 					})}
 				>
-					Show in Finder
+					{t("Show in Finder")}
 				</Button>
 			)}
 			<Button variant="subtle" onClick={openSettings}>
-				Switch library…
+				{t("Switch library…")}
 			</Button>
 		</EmptyState>
 	);

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	SETTINGS_SECTION_LABELS,
 	type TSettingsSection,
@@ -21,11 +22,12 @@ export const SettingsPage = ({
 	sections,
 	renderSection,
 }: SettingsPageProps) => {
+	const { t } = useTranslation();
 	const several = sections.length > 1;
 	return (
 		<div className={classes.page}>
 			<header className={classes.bar}>
-				<h1 className={classes.title}>Settings</h1>
+				<h1 className={classes.title}>{t("Settings")}</h1>
 			</header>
 			<div className={classes.body}>
 				{sections.map((section) => {

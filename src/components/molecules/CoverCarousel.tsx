@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { memo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { StagedCover } from "@/components/atoms/StagedCover";
 import { useCarouselScroll } from "@/lib/hooks/use-carousel-scroll";
 import type { DepartingCover } from "@/lib/hooks/use-review-deck";
@@ -51,6 +52,7 @@ export const CoverCarousel = ({
 	departing,
 	onSelect,
 }: CoverCarouselProps) => {
+	const { t } = useTranslation();
 	const trackRef = useRef<HTMLDivElement>(null);
 	useCarouselScroll({
 		track: trackRef,
@@ -95,8 +97,14 @@ export const CoverCarousel = ({
 							data-slide-index={position}
 							aria-label={
 								position === index
-									? `${item.book?.title ?? item.name}, book ${position + 1} of ${items.length}`
-									: `Show ${item.book?.title ?? item.name}`
+									? t("{{title}}, book {{position}} of {{total}}", {
+											title: item.book?.title ?? item.name,
+											position: position + 1,
+											total: items.length,
+										})
+									: t("Show {{title}}", {
+											title: item.book?.title ?? item.name,
+										})
 							}
 							aria-current={position === index || undefined}
 							onClick={() => onSelect(position)}

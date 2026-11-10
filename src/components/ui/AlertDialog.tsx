@@ -1,4 +1,5 @@
 import * as RadixAlertDialog from "@radix-ui/react-alert-dialog";
+import { useTranslation } from "react-i18next";
 import styles from "./AlertDialog.module.css";
 import { Button } from "./Button";
 
@@ -28,40 +29,43 @@ export const AlertDialog = ({
 	description,
 	textAlign = "center",
 	confirmLabel,
-	cancelLabel = "Cancel",
+	cancelLabel,
 	destructive = false,
 	onConfirm,
-}: AlertDialogProps) => (
-	<RadixAlertDialog.Root open={open} onOpenChange={onOpenChange}>
-		<RadixAlertDialog.Portal>
-			<RadixAlertDialog.Overlay className={styles.overlay} />
-			<RadixAlertDialog.Content
-				className={styles.content}
-				data-text-align={textAlign}
-			>
-				<RadixAlertDialog.Title className={styles.title}>
-					{title}
-				</RadixAlertDialog.Title>
-				{description ? (
-					<RadixAlertDialog.Description className={styles.description}>
-						{description}
-					</RadixAlertDialog.Description>
-				) : null}
-				<div className={styles.buttons}>
-					<RadixAlertDialog.Cancel asChild>
-						<Button fullWidth>{cancelLabel}</Button>
-					</RadixAlertDialog.Cancel>
-					<RadixAlertDialog.Action asChild>
-						<Button
-							fullWidth
-							variant={destructive ? "danger" : "primary"}
-							onClick={onConfirm}
-						>
-							{confirmLabel}
-						</Button>
-					</RadixAlertDialog.Action>
-				</div>
-			</RadixAlertDialog.Content>
-		</RadixAlertDialog.Portal>
-	</RadixAlertDialog.Root>
-);
+}: AlertDialogProps) => {
+	const { t } = useTranslation();
+	return (
+		<RadixAlertDialog.Root open={open} onOpenChange={onOpenChange}>
+			<RadixAlertDialog.Portal>
+				<RadixAlertDialog.Overlay className={styles.overlay} />
+				<RadixAlertDialog.Content
+					className={styles.content}
+					data-text-align={textAlign}
+				>
+					<RadixAlertDialog.Title className={styles.title}>
+						{title}
+					</RadixAlertDialog.Title>
+					{description ? (
+						<RadixAlertDialog.Description className={styles.description}>
+							{description}
+						</RadixAlertDialog.Description>
+					) : null}
+					<div className={styles.buttons}>
+						<RadixAlertDialog.Cancel asChild>
+							<Button fullWidth>{cancelLabel ?? t("Cancel")}</Button>
+						</RadixAlertDialog.Cancel>
+						<RadixAlertDialog.Action asChild>
+							<Button
+								fullWidth
+								variant={destructive ? "danger" : "primary"}
+								onClick={onConfirm}
+							>
+								{confirmLabel}
+							</Button>
+						</RadixAlertDialog.Action>
+					</div>
+				</RadixAlertDialog.Content>
+			</RadixAlertDialog.Portal>
+		</RadixAlertDialog.Root>
+	);
+};

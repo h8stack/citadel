@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { SwitchStage } from "@/lib/library-switch/machine";
 import styles from "./LibrarySwitchCurtain.module.css";
 
@@ -7,15 +8,18 @@ import styles from "./LibrarySwitchCurtain.module.css";
  * `use-library-switch.ts`; App calls the hook and passes the stage down.
  */
 export const LibrarySwitchCurtain = ({ stage }: { stage: SwitchStage }) => {
+	const { t } = useTranslation();
 	if (stage.id === "idle") return null;
 
 	return (
 		<div className={styles.curtain} data-stage={stage.id} role="status">
-			<p className={styles.title}>Opening ‘{stage.name}’</p>
+			<p className={styles.title}>
+				{t("Opening ‘{{name}}’", { name: stage.name })}
+			</p>
 			<div
 				className={styles.track}
 				role="progressbar"
-				aria-label={`Opening ${stage.name}`}
+				aria-label={t("Opening {{name}}", { name: stage.name })}
 				aria-valuemin={0}
 				aria-valuemax={100}
 				aria-valuenow={Math.round(stage.progress)}

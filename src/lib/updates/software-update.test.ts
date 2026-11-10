@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import i18next from "@/lib/i18n";
 import {
 	displayedStatus,
 	NO_UPDATE_ACTIONS,
@@ -26,6 +27,9 @@ const server = (status: SoftwareUpdateStatus): SoftwareUpdateState => ({
 });
 
 describe("softwareUpdateRowView", () => {
+	beforeEach(async () => {
+		await i18next.changeLanguage("en");
+	});
 	it("names the current version until a check finds something", () => {
 		expect(softwareUpdateRowView(state({ kind: "idle" }))).toEqual({
 			label: "Citadel 0.7.1",
@@ -86,6 +90,9 @@ describe("softwareUpdateRowView", () => {
 });
 
 describe("softwareUpdateRowView for a server", () => {
+	beforeEach(async () => {
+		await i18next.changeLanguage("en");
+	});
 	it("shows readers only the version", () => {
 		expect(softwareUpdateRowView(server({ kind: "idle" }))).toEqual({
 			label: "Citadel 0.7.1",

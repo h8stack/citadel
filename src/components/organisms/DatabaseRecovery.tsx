@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import type { DatabaseProblem, RecoveryStep } from "@/bindings";
 import { FluentLibraryFilled } from "@/components/icons/FluentLibraryFilled";
 import { Button, Spinner } from "@/components/ui";
@@ -47,12 +48,21 @@ export const DatabaseRecoveryCard = ({
 	error,
 	onRecover,
 }: DatabaseRecoveryCardProps) => {
+	const { t } = useTranslation();
 	const copy = PROBLEM_COPY[problem.kind];
 	const backupDate = formatBackupDate(problem.backup?.createdAt ?? null);
 	const busy = running !== null;
 	const steps = problem.steps.filter(
 		(step): step is Exclude<RecoveryStep, "quit"> => step !== "quit",
 	);
+	const stepTitle = (step: Exclude<RecoveryStep, "quit">): string => {
+		if (step === "restoreBackup") {
+			return backupDate
+				? t("Restore from {{date}}", { date: backupDate })
+				: t("Restore a previous version");
+		}
+		return t(STEP_COPY[step].title(backupDate));
+	};
 
 	const cardRef = useRef<HTMLElement>(null);
 	useEffect(() => {
@@ -63,53 +73,56 @@ export const DatabaseRecoveryCard = ({
 
 	return (
 		<div className={card.layer}>
-			<section ref={cardRef} className={card.card} aria-label={copy.title}>
+			<section ref={cardRef} className={card.card} aria-label={t(copy.title)}>
 				<div className={styles.body}>
 					<div className={card.mark}>
 						<ShelfMark />
 					</div>
-					<h1 className={card.title}>{copy.title}</h1>
-					<p className={card.lede}>{copy.lede}</p>
+					<h1 className={card.title}>{t(copy.title)}</h1>
+					<p className={card.lede}>{t(copy.lede)}</p>
 					{steps.length > 0 && (
 						<div className={card.choices}>
-							{steps.map((step, index) => (
-								<button
-									key={step}
-									type="button"
-									className={card.choice}
-									disabled={busy}
-									data-autofocus={index === 0 || undefined}
-									onClick={() => onRecover(step)}
-								>
-									<span>
-										<span className={card.choiceTitle}>
-											{STEP_COPY[step].title(backupDate)}
+							{steps.map((step, index) => {
+								const description = STEP_COPY[step].description;
+								return (
+									<button
+										key={step}
+										type="button"
+										className={card.choice}
+										disabled={busy}
+										data-autofocus={index === 0 || undefined}
+										onClick={() => onRecover(step)}
+									>
+										<span>
+											<span className={card.choiceTitle}>
+												{stepTitle(step)}
+											</span>
+											{(running === step || description) && (
+												<>
+													<br />
+													<span className={card.choiceDesc}>
+														{running === step
+															? t(WORKING_LABEL)
+															: description && t(description)}
+													</span>
+												</>
+											)}
 										</span>
-										{(running === step || STEP_COPY[step].description) && (
-											<>
-												<br />
-												<span className={card.choiceDesc}>
-													{running === step
-														? WORKING_LABEL
-														: STEP_COPY[step].description}
-												</span>
-											</>
-										)}
-									</span>
-									<span className={card.choiceChevron}>
-										{running === step ? (
-											<Spinner size={12} />
-										) : (
-											<ChevronRight />
-										)}
-									</span>
-								</button>
-							))}
+										<span className={card.choiceChevron}>
+											{running === step ? (
+												<Spinner size={12} />
+											) : (
+												<ChevronRight />
+											)}
+										</span>
+									</button>
+								);
+							})}
 						</div>
 					)}
 					{error && (
 						<p className={card.err} role="alert">
-							{FAILED_PREFIX} {error}
+							{t(FAILED_PREFIX)} {error}
 						</p>
 					)}
 					<div className={card.divider} />
@@ -121,7 +134,7 @@ export const DatabaseRecoveryCard = ({
 							data-autofocus={steps.length === 0 || undefined}
 							onClick={() => onRecover("quit")}
 						>
-							{QUIT_LABEL}
+							{t(QUIT_LABEL)}
 						</Button>
 					</div>
 				</div>

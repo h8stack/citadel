@@ -40,6 +40,23 @@ Download the `.dmg` from [Releases](https://github.com/everydaythingssoftware/ci
 > xattr -d com.apple.quarantine /Applications/Citadel.app/
 > ```
 
+### Installing on Windows
+
+Download the `.msi` installer (or the NSIS `.exe`) from
+[Releases](https://github.com/everydaythingssoftware/citadel/releases) and run
+it. Windows builds are not code-signed yet, so SmartScreen may ask you to
+confirm the publisher. Development builds are uploaded from the
+[Build workflow](https://github.com/everydaythingssoftware/citadel/actions/workflows/build.yml)
+as the `windows-exe-and-msi` artifact.
+
+### Languages
+
+Citadel ships in Vietnamese (the default) and English. Change the language
+under **Settings → General → Language**; the choice is remembered and applies
+to every window. Translation strings live in `src/lib/i18n/locales/vi`; keys
+are the English source copy, so any string without a Vietnamese entry still
+renders in English rather than breaking the UI.
+
 ## Developing
 
 As a prerequisite, you'll need to install [Bun](https://bun.sh) and

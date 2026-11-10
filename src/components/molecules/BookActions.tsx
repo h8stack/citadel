@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { BookFile } from "@/bindings";
 import { GlyphDownload, GlyphOpenExternal } from "@/components/icons/RowGlyphs";
 import { Tooltip } from "@/components/ui";
@@ -22,12 +23,13 @@ export const BookActions = ({
 	isRead,
 	onReadChange,
 }: BookActionsProps) => {
+	const { t } = useTranslation();
 	const rows = bookFormatRows(files);
 	return (
 		<div className={styles.actions}>
 			<FinishedButton isRead={isRead} onReadChange={onReadChange} />
 			{rows.length === 0 ? (
-				<p className={styles.note}>No files</p>
+				<p className={styles.note}>{t("No files")}</p>
 			) : (
 				<FileTiles rows={rows} />
 			)}
@@ -44,6 +46,7 @@ const FinishedButton = ({
 	isRead,
 	onReadChange,
 }: Pick<BookActionsProps, "isRead" | "onReadChange">) => {
+	const { t } = useTranslation();
 	// Only a press animates; opening an already-finished book doesn't.
 	const [justFinished, setJustFinished] = useState(false);
 	return (
@@ -52,7 +55,7 @@ const FinishedButton = ({
 			className={styles.finished}
 			aria-pressed={isRead}
 			data-just-finished={justFinished || undefined}
-			title={isRead ? "Mark as unread" : undefined}
+			title={isRead ? t("Mark as unread") : undefined}
 			onAnimationEnd={(event) => {
 				// The glow on the button itself runs longest; the circle's and
 				// the check's own animations bubble up here too.
@@ -73,13 +76,10 @@ const FinishedButton = ({
 				<circle className={styles.markCircle} cx="8" cy="8" r="6.75" />
 				<path className={styles.markCheck} d="M5 8.25 7.1 10.3 11 6" />
 			</svg>
-			{isRead ? "Finished" : "Mark as Finished"}
+			{isRead ? t("Finished") : t("Mark as Finished")}
 		</button>
 	);
 };
-
-const verb = (row: BookFormatRow) =>
-	row.kind === "download" ? "Download" : "Open";
 
 /**
  * The book's files as small document tiles, the way Finder shows a file:
@@ -87,6 +87,7 @@ const verb = (row: BookFormatRow) =>
  * (desktop) or downloads it (web); they wrap however many there are.
  */
 export const FileTiles = ({ rows }: { rows: BookFormatRow[] }) => {
+	const { t } = useTranslation();
 	const platform = usePlatform();
 	const use = (row: BookFormatRow) => {
 		if (row.kind === "open") {
@@ -99,9 +100,12 @@ export const FileTiles = ({ rows }: { rows: BookFormatRow[] }) => {
 		link.click();
 	};
 	return (
-		<ul className={styles.tiles} aria-label="Files">
+		<ul className={styles.tiles} aria-label={t("Files")}>
 			{rows.map((row) => {
-				const action = `${verb(row)} ${row.label}`;
+				const action =
+					row.kind === "download"
+						? t("Download {{format}}", { format: row.label })
+						: t("Open {{format}}", { format: row.label });
 				return (
 					<li key={row.key}>
 						<Tooltip label={action}>

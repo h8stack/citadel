@@ -1,7 +1,8 @@
+import { useTranslation } from "react-i18next";
 import { Checkbox, SearchField, Select } from "@/components/ui";
 import {
 	type AuthorSortOrderValue,
-	sortOrderOptions,
+	authorSortOrderOptions,
 	type UseAuthorFiltersReturn,
 } from "@/lib/hooks/use-author-filters";
 import styles from "./AuthorFilterControls.module.css";
@@ -19,10 +20,11 @@ export const AuthorFilterControls = ({
 	onSortOrderChange,
 	onShowOnlyAuthorsWithoutBooksChange,
 }: AuthorFilterControlsProps) => {
+	const { t } = useTranslation();
 	return (
 		<div className={styles.controls}>
 			<SearchField
-				placeholder="Search authors"
+				placeholder={t("Search authors")}
 				value={filters.searchTerm}
 				onChange={(event) => onSearchChange(event.currentTarget.value)}
 				className={styles.search}
@@ -30,15 +32,15 @@ export const AuthorFilterControls = ({
 
 			<Select
 				width={150}
-				aria-label="Sort order"
-				placeholder="Sort Order"
-				options={sortOrderOptions}
+				aria-label={t("Sort order")}
+				placeholder={t("Sort Order")}
+				options={authorSortOrderOptions()}
 				value={filters.sortOrder}
 				onChange={(value) => onSortOrderChange(value as AuthorSortOrderValue)}
 			/>
 
 			<Checkbox
-				label="No books"
+				label={t("No books")}
 				checked={filters.showOnlyAuthorsWithoutBooks}
 				onCheckedChange={onShowOnlyAuthorsWithoutBooksChange}
 			/>

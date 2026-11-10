@@ -1,3 +1,4 @@
+import i18next from "@/lib/i18n";
 import type {
 	BookIntake,
 	BookUploads,
@@ -53,17 +54,23 @@ export interface UploadRunner {
 
 const messageFor = (error: unknown): string => {
 	if (!(error instanceof UploadError))
-		return error instanceof Error ? error.message : "Something went wrong";
+		return error instanceof Error
+			? error.message
+			: i18next.t("Something went wrong");
 	switch (error.failure) {
 		case UploadFailure.network:
 		case UploadFailure.server:
-			return "The connection dropped. Try again when you're back online.";
+			return i18next.t(
+				"The connection dropped. Try again when you're back online.",
+			);
 		case UploadFailure.unauthorized:
-			return "You've been signed out. Sign in again, then try again.";
+			return i18next.t(
+				"You've been signed out. Sign in again, then try again.",
+			);
 		case UploadFailure.notFound:
-			return "This upload expired. Try again to start over.";
+			return i18next.t("This upload expired. Try again to start over.");
 		case UploadFailure.readOnly:
-			return "This library can't take new books right now.";
+			return i18next.t("This library can't take new books right now.");
 		default:
 			return error.message;
 	}
@@ -236,7 +243,7 @@ export const createUploadRunner = ({
 					dispatch({
 						type: "failed",
 						key: item.key,
-						message: "The server couldn't read this file.",
+						message: i18next.t("The server couldn't read this file."),
 					});
 					return;
 				}

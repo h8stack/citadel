@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 import { StagedCover } from "@/components/atoms/StagedCover";
 import { UploadProgressRing } from "@/components/atoms/UploadProgressRing";
 import {
@@ -7,6 +8,7 @@ import {
 	XmarkGlyph,
 } from "@/components/icons/UploadGlyphs";
 import { Button, IconButton, Spinner } from "@/components/ui";
+import i18next from "@/lib/i18n";
 import { hasSource, type QueueItem, UploadPhase } from "@/lib/uploads/queue";
 import styles from "./UploadQueueRow.module.css";
 
@@ -20,22 +22,23 @@ export interface UploadQueueRowProps {
 const subtitle = (item: QueueItem): string => {
 	switch (item.phase) {
 		case UploadPhase.waiting:
-			return "Waiting";
+			return i18next.t("Waiting");
 		case UploadPhase.uploading:
-			return "Uploading…";
+			return i18next.t("Uploading…");
 		case UploadPhase.reading:
-			return "Reading book…";
+			return i18next.t("Reading book…");
 		case UploadPhase.adding:
-			return "Adding…";
+			return i18next.t("Adding…");
 		case UploadPhase.added:
-			return "Added";
+			return i18next.t("Added");
 		case UploadPhase.ready:
 			return (
-				item.message ?? (item.book?.authorNames.join(", ") || "Ready to add")
+				item.message ??
+				(item.book?.authorNames.join(", ") || i18next.t("Ready to add"))
 			);
 		case UploadPhase.failed:
 		case UploadPhase.rejected:
-			return item.message ?? "Couldn't add this file";
+			return item.message ?? i18next.t("Couldn't add this file");
 	}
 };
 
@@ -64,6 +67,7 @@ export const UploadQueueRow = ({
 	onRetry,
 	onRemove,
 }: UploadQueueRowProps) => {
+	const { t } = useTranslation();
 	const problem =
 		item.phase === UploadPhase.failed ||
 		item.phase === UploadPhase.rejected ||
@@ -82,7 +86,7 @@ export const UploadQueueRow = ({
 					<UploadProgressRing
 						progress={item.size ? item.sentBytes / item.size : 0}
 						onStop={onRemove}
-						stopLabel={`Stop uploading ${item.name}`}
+						stopLabel={t("Stop uploading {{name}}", { name: item.name })}
 					/>
 				)}
 				{item.phase === UploadPhase.reading && (
@@ -91,7 +95,7 @@ export const UploadQueueRow = ({
 					<button
 						type="button"
 						className={styles.busyCancel}
-						aria-label={`Stop reading ${item.name}`}
+						aria-label={t("Stop reading {{name}}", { name: item.name })}
 						onClick={onRemove}
 					>
 						<Spinner size={18} className={styles.busySpinner} />
@@ -107,18 +111,18 @@ export const UploadQueueRow = ({
 					<Button
 						className={styles.review}
 						onClick={onReview}
-						aria-label={`Review ${item.name}`}
+						aria-label={t("Review {{name}}", { name: item.name })}
 					>
-						<span className={styles.reviewLabel}>Review</span>
+						<span className={styles.reviewLabel}>{t("Review")}</span>
 						<ChevronRightGlyph className={styles.chevron} />
 					</Button>
 				)}
 				{item.phase === UploadPhase.failed && hasSource(item) && (
-					<Button onClick={onRetry}>Try Again</Button>
+					<Button onClick={onRetry}>{t("Try Again")}</Button>
 				)}
 				{item.phase === UploadPhase.rejected ? (
 					<Button variant="subtle" onClick={onRemove}>
-						Dismiss
+						{t("Dismiss")}
 					</Button>
 				) : (
 					// Waiting and failed files show their ×; reading and uploading
@@ -126,7 +130,10 @@ export const UploadQueueRow = ({
 					// library) runs to the end.
 					(item.phase === UploadPhase.waiting ||
 						item.phase === UploadPhase.failed) && (
-						<IconButton aria-label={`Remove ${item.name}`} onClick={onRemove}>
+						<IconButton
+							aria-label={t("Remove {{name}}", { name: item.name })}
+							onClick={onRemove}
+						>
 							<XmarkGlyph />
 						</IconButton>
 					)

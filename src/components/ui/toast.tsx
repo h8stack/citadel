@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { useTranslation } from "react-i18next";
 import { Spinner } from "./Spinner";
 import styles from "./toast.module.css";
 
@@ -157,6 +158,7 @@ export const toast = { show, update, hide };
 
 /** macOS notification-banner stack, top right. Mount once. */
 export const Toaster = () => {
+	const { t } = useTranslation();
 	const items = useSyncExternalStore(subscribe, getSnapshot);
 
 	if (items.length === 0) return null;
@@ -186,7 +188,7 @@ export const Toaster = () => {
 						<button
 							type="button"
 							className={styles.dismiss}
-							aria-label="Dismiss notification"
+							aria-label={t("Dismiss notification")}
 							onClick={() => hide(item.id)}
 						>
 							<svg

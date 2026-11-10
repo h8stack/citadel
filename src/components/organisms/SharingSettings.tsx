@@ -13,7 +13,7 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import type { OpdsLifecycleState } from "@/bindings";
+import { useTranslation } from "react-i18next";
 import { TablerCopy } from "@/components/icons/TablerCopy";
 import { DeviceKeySheet } from "@/components/organisms/DeviceKeySheet";
 import panes from "@/components/organisms/SettingsPanes.module.css";
@@ -38,14 +38,8 @@ import { useSettings } from "@/stores/settings/store";
 
 /** Copied state lifetime. */
 const COPIED_MS = 1_500;
-/** Shown in place of the URL while the service is on but not yet serving. */
-const PENDING_LABEL = {
-	starting: "Starting…",
-	waitingForInterface: "Waiting for a network connection…",
-} as const satisfies Partial<Record<OpdsLifecycleState, string>>;
 /** Matches the sign-in-emphasis animation in the module CSS. */
 const SIGN_IN_EMPHASIS_MS = 1_200;
-const PORT_RANGE_MESSAGE = "Choose a port from 1 to 65535.";
 /** HTTP Basic splits `user:pass` at the first colon; the backend rejects it too. */
 const USERNAME_FORBIDDEN = ":";
 
@@ -94,6 +88,7 @@ const Row = ({
 );
 
 export const SharingSettings = () => {
+	const { t } = useTranslation();
 	const platform = usePlatform();
 	const supported = platform.capabilities.supportsLocalOpdsServer;
 	const sharing = useSettings((state) => state.sharing);
@@ -103,10 +98,11 @@ export const SharingSettings = () => {
 	if (!supported) {
 		return (
 			<div className={classes.unsupported}>
-				<h3>Sharing requires the desktop app</h3>
+				<h3>{t("Sharing requires the desktop app")}</h3>
 				<p>
-					The web version cannot run a local server. Open Citadel on macOS or
-					another supported desktop to share this library.
+					{t(
+						"The web version cannot run a local server. Open Citadel on macOS or another supported desktop to share this library.",
+					)}
 				</p>
 			</div>
 		);
@@ -128,6 +124,7 @@ interface SharingPaneProps {
 }
 
 const SharingPane = ({ controller, sharing, setSharing }: SharingPaneProps) => {
+	const { t } = useTranslation();
 	const platform = usePlatform();
 	const shareSwitchId = useId();
 	const keysHeadingId = useId();
@@ -350,27 +347,29 @@ const SharingPane = ({ controller, sharing, setSharing }: SharingPaneProps) => {
 			: null;
 	const portRejected = serverError?.code === "portUnavailable";
 	const portMessage = !portValid
-		? PORT_RANGE_MESSAGE
+		? t("Choose a port from 1 to 65535.")
 		: portRejected
 			? serverError.message
 			: null;
 	const shareError = serverError && !portRejected ? serverError.message : null;
 	const usernameError = usernameInvalid
-		? "Usernames can't contain a colon."
+		? t("Usernames can't contain a colon.")
 		: renameFailed
 			? credentialError
 			: null;
 	const keysError = !renameFailed && !sheet.open ? credentialError : null;
 	const listenUrl = status?.state === "running" ? status.urls[0] : undefined;
 	const pendingLabel =
-		status?.state === "starting" || status?.state === "waitingForInterface"
-			? PENDING_LABEL[status.state]
-			: null;
+		status?.state === "starting"
+			? t("Starting…")
+			: status?.state === "waitingForInterface"
+				? t("Waiting for a network connection…")
+				: null;
 
 	if (!status) {
 		return (
 			<div className={panes.groups}>
-				<p className={panes.paneNote}>Checking sharing status…</p>
+				<p className={panes.paneNote}>{t("Checking sharing status…")}</p>
 				{controller.error && (
 					<p className={panes.inlineNote} data-tone="error" role="alert">
 						{controller.error.message}
@@ -383,11 +382,15 @@ const SharingPane = ({ controller, sharing, setSharing }: SharingPaneProps) => {
 	return (
 		<div>
 			<p className={panes.paneNote}>
-				Let reader apps browse and download this library over OPDS.
+				{t("Let reader apps browse and download this library over OPDS.")}
 			</p>
 			<div className={panes.groups}>
 				<div className={panes.group}>
-					<Row label="Share library" htmlFor={shareSwitchId} error={shareError}>
+					<Row
+						label={t("Share library")}
+						htmlFor={shareSwitchId}
+						error={shareError}
+					>
 						<Switch
 							id={shareSwitchId}
 							checked={shareOn}
@@ -403,11 +406,11 @@ const SharingPane = ({ controller, sharing, setSharing }: SharingPaneProps) => {
 					{listenUrl && (
 						<div className={classes.rowListen}>
 							<p className={classes.listen}>
-								Listening on
+								{t("Listening on")}
 								<button
 									type="button"
 									className={`${classes.urlChip} ${urlCopied ? classes.urlCopied : ""}`}
-									aria-label={`Copy ${listenUrl}`}
+									aria-label={t("Copy {{url}}", { url: listenUrl })}
 									onMouseDown={(event) => event.preventDefault()}
 									onClick={() => void copyUrl(listenUrl)}
 								>
@@ -431,15 +434,15 @@ const SharingPane = ({ controller, sharing, setSharing }: SharingPaneProps) => {
 									</span>
 								</button>
 								<span className={classes.urlCopyLabel} data-copied={urlCopied}>
-									<span>Copy</span>
-									<span>Copied</span>
+									<span>{t("Copy")}</span>
+									<span>{t("Copied")}</span>
 								</span>
 							</p>
 						</div>
 					)}
-					<Row label="Reachable from">
+					<Row label={t("Reachable from")}>
 						<SegmentedControl
-							aria-label="Reachable from"
+							aria-label={t("Reachable from")}
 							value={sharing.target}
 							dimmed={!allNetworksUnlocked}
 							onChange={(next) => {
@@ -449,18 +452,18 @@ const SharingPane = ({ controller, sharing, setSharing }: SharingPaneProps) => {
 							}}
 							onLockedClick={pointAtSignIn}
 							items={[
-								{ value: "localNetworks", label: "Local network" },
+								{ value: "localNetworks", label: t("Local network") },
 								{
 									value: "allInterfaces",
-									label: "All networks",
+									label: t("All networks"),
 									lockedReason: allNetworksUnlocked
 										? undefined
-										: "Requires sign-in",
+										: t("Requires sign-in"),
 								},
 							]}
 						/>
 					</Row>
-					<Row label="Port" htmlFor="sharing-port" error={portMessage}>
+					<Row label={t("Port")} htmlFor="sharing-port" error={portMessage}>
 						<TextInput
 							id="sharing-port"
 							aria-invalid={portMessage ? true : undefined}
@@ -492,9 +495,9 @@ const SharingPane = ({ controller, sharing, setSharing }: SharingPaneProps) => {
 
 				<div className={panes.group}>
 					<Row
-						label="Require sign-in"
+						label={t("Require sign-in")}
 						htmlFor="sharing-signin"
-						description="HTTP Basic Auth, supported by most reader apps."
+						description={t("HTTP Basic Auth, supported by most reader apps.")}
 						className={signInEmphasized ? classes.emphasized : undefined}
 					>
 						<Switch
@@ -506,11 +509,11 @@ const SharingPane = ({ controller, sharing, setSharing }: SharingPaneProps) => {
 					</Row>
 					{sharing.authenticationEnabled && (
 						<Row
-							label="Username"
+							label={t("Username")}
 							htmlFor="sharing-username"
 							description={
 								usernameDirty && credentialsConfigured
-									? "Change it on every reader too."
+									? t("Change it on every reader too.")
 									: null
 							}
 							error={usernameError}
@@ -539,13 +542,13 @@ const SharingPane = ({ controller, sharing, setSharing }: SharingPaneProps) => {
 				{sharing.authenticationEnabled && (
 					<section aria-labelledby={keysHeadingId}>
 						<h3 id={keysHeadingId} className={panes.sectionTitle}>
-							Device passwords
+							{t("Device passwords")}
 						</h3>
 						<div className={panes.group}>
 							{keys.length === 0 && (
 								<div className={panes.row}>
 									<span className={panes.rowDescription}>
-										Reader apps can't sign in until you add a device.
+										{t("Reader apps can't sign in until you add a device.")}
 									</span>
 									<Button
 										ref={addDeviceRef}
@@ -553,7 +556,7 @@ const SharingPane = ({ controller, sharing, setSharing }: SharingPaneProps) => {
 										className={classes.addFirstDevice}
 										onClick={sheet.startAdding}
 									>
-										Add Device…
+										{t("Add Device…")}
 									</Button>
 								</div>
 							)}
@@ -567,15 +570,15 @@ const SharingPane = ({ controller, sharing, setSharing }: SharingPaneProps) => {
 									</div>
 									<div className={classes.keyActions}>
 										<HoldButton
-											label="Rotate"
-											hint="Hold to replace this password"
+											label={t("Rotate")}
+											hint={t("Hold to replace this password")}
 											tone="neutral"
 											disabled={controller.isActing}
 											onConfirm={() => rotateKey(key.id)}
 										/>
 										<HoldButton
-											label="Revoke"
-											hint="Hold to revoke this password"
+											label={t("Revoke")}
+											hint={t("Hold to revoke this password")}
 											disabled={controller.isActing}
 											onConfirm={() => revokeKey(key.id)}
 										/>
@@ -600,7 +603,7 @@ const SharingPane = ({ controller, sharing, setSharing }: SharingPaneProps) => {
 										className={classes.addDevice}
 										onClick={sheet.startAdding}
 									>
-										+ Add Device…
+										{t("+ Add Device…")}
 									</Button>
 								</div>
 							)}

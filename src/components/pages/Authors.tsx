@@ -7,6 +7,7 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import type { AuthorUpdate, LibraryAuthor } from "@/bindings";
 import { AuthorFilterControls } from "@/components/organisms/AuthorFilterControls";
@@ -35,12 +36,11 @@ import styles from "./Authors.module.css";
  * Shared column template so the header row and every author row align:
  * name (flexible) | sort name (fixed, hidden narrow) | count | actions.
  */
-const authorNoun = (count: number) => (count === 1 ? "author" : "authors");
-
 const errorText = (error: unknown): string =>
 	error instanceof Error ? error.message : String(error);
 
 export const Authors = () => {
+	const { t } = useTranslation();
 	const authors = useAuthors();
 	const loadingAuthors = useAuthorsLoading();
 	const actions = useLibraryActions();
@@ -112,10 +112,13 @@ export const Authors = () => {
 			setDeleteDialogOpened(false);
 		} catch (error) {
 			setDeleteFailure(
-				`Couldn't delete ${authorToDelete.name}: ${errorText(error)}`,
+				t("Couldn't delete {{name}}: {{error}}", {
+					name: authorToDelete.name,
+					error: errorText(error),
+				}),
 			);
 		}
-	}, [actions, authorToDelete]);
+	}, [actions, authorToDelete, t]);
 
 	if (loadingAuthors) {
 		return null;
@@ -133,6 +136,7 @@ export const Authors = () => {
 
 	const searchTerm = filters.searchTerm.trim();
 	const noMatches = filteredAuthors.length === 0;
+	const authorNoun = (count: number) => t(count === 1 ? "author" : "authors");
 
 	return (
 		<div className={styles.page}>
@@ -151,13 +155,16 @@ export const Authors = () => {
 			<AlertDialog
 				open={deleteDialogOpened}
 				onOpenChange={setDeleteDialogOpened}
-				title="Delete author"
+				title={t("Delete author")}
 				description={
 					authorToDelete
-						? `Are you sure you want to delete "${authorToDelete.name}"? This cannot be undone.`
+						? t(
+								'Are you sure you want to delete "{{name}}"? This cannot be undone.',
+								{ name: authorToDelete.name },
+							)
 						: undefined
 				}
-				confirmLabel="Delete"
+				confirmLabel={t("Delete")}
 				destructive
 				onConfirm={() => void onConfirmDeleteAuthor()}
 			/>
@@ -166,7 +173,7 @@ export const Authors = () => {
 				<div role="alert" className={styles.failure}>
 					<span>{deleteFailure}</span>
 					<IconButton
-						aria-label="Dismiss"
+						aria-label={t("Dismiss")}
 						onClick={() => setDeleteFailure(null)}
 					>
 						×
@@ -186,23 +193,23 @@ export const Authors = () => {
 				searchTerm.length > 0 ? (
 					<EmptyState
 						art="search"
-						title={`No authors match “${searchTerm}”`}
-						description="Check the spelling, or search by surname."
+						title={t("No authors match “{{query}}”", { query: searchTerm })}
+						description={t("Check the spelling, or search by surname.")}
 					>
 						<Button variant="default" onClick={() => setSearchTerm("")}>
-							Clear Search
+							{t("Clear Search")}
 						</Button>
 					</EmptyState>
 				) : (
 					<EmptyState
-						title="Every author has books"
-						description="No author is left without a book in this library."
+						title={t("Every author has books")}
+						description={t("No author is left without a book in this library.")}
 					>
 						<Button
 							variant="default"
 							onClick={() => setShowOnlyAuthorsWithoutBooks(false)}
 						>
-							Show all authors
+							{t("Show all authors")}
 						</Button>
 					</EmptyState>
 				)
@@ -212,12 +219,12 @@ export const Authors = () => {
 						data-authors-header=""
 						className={clsx(styles.headerRow, styles.grid)}
 					>
-						<span className={styles.columnLabel}>Name</span>
+						<span className={styles.columnLabel}>{t("Name")}</span>
 						<span className={clsx(styles.columnLabel, styles.visibleFromMd)}>
-							Sort name
+							{t("Sort name")}
 						</span>
 						<span className={clsx(styles.columnLabel, styles.columnLabelRight)}>
-							Books
+							{t("Books")}
 						</span>
 						<span />
 					</div>
@@ -232,8 +239,15 @@ export const Authors = () => {
 					<div data-authors-footer="" className={styles.footer}>
 						<span className={styles.footerText}>
 							{filteredAuthors.length === authors.length
-								? `${authors.length} ${authorNoun(authors.length)}`
-								: `${filteredAuthors.length} of ${authors.length} ${authorNoun(authors.length)}`}
+								? t("{{total}} {{noun}}", {
+										total: authors.length,
+										noun: authorNoun(authors.length),
+									})
+								: t("{{shown}} of {{total}} {{noun}}", {
+										shown: filteredAuthors.length,
+										total: authors.length,
+										noun: authorNoun(authors.length),
+									})}
 						</span>
 					</div>
 				</>
@@ -258,6 +272,7 @@ const EditAuthorSheet = ({
 	) => Promise<void>;
 	onCloseAutoFocus?: (event: Event) => void;
 }) => {
+	const { t } = useTranslation();
 	const [displayName, setDisplayName] = useState(authorToEdit.name ?? "");
 	const [sortName, setSortName] = useState(authorToEdit.sortable_name ?? "");
 	const [errors, setErrors] = useState<{
@@ -277,8 +292,8 @@ const EditAuthorSheet = ({
 	const onSubmit = (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		const nextErrors = {
-			displayName: displayName.length > 0 ? undefined : "Name is required",
-			sortName: sortName.length > 0 ? undefined : "Sort name is required",
+			displayName: displayName.length > 0 ? undefined : t("Name is required"),
+			sortName: sortName.length > 0 ? undefined : t("Sort name is required"),
 		};
 		if (nextErrors.displayName || nextErrors.sortName) {
 			setErrors(nextErrors);
@@ -300,15 +315,15 @@ const EditAuthorSheet = ({
 			onOpenChange={(open) => {
 				if (!open) onClose();
 			}}
-			title="Edit author"
+			title={t("Edit author")}
 			width={380}
 			onCloseAutoFocus={onCloseAutoFocus}
 		>
 			<form onSubmit={onSubmit}>
 				<div className={styles.sheetFields}>
 					<FormField
-						label="Full name"
-						description="How the author's name is displayed"
+						label={t("Full name")}
+						description={t("How the author's name is displayed")}
 						error={errors.displayName}
 					>
 						<TextInput
@@ -320,8 +335,8 @@ const EditAuthorSheet = ({
 						/>
 					</FormField>
 					<FormField
-						label="Sort name"
-						description="Authors are sorted alphabetically by this name"
+						label={t("Sort name")}
+						description={t("Authors are sorted alphabetically by this name")}
 						error={errors.sortName}
 					>
 						<TextInput
@@ -339,9 +354,9 @@ const EditAuthorSheet = ({
 					</p>
 				)}
 				<div className={styles.sheetFooter}>
-					<Button onClick={onClose}>Cancel</Button>
+					<Button onClick={onClose}>{t("Cancel")}</Button>
 					<Button type="submit" variant="primary">
-						Save
+						{t("Save")}
 					</Button>
 				</div>
 			</form>
@@ -414,6 +429,7 @@ const AuthorRow = ({
 	onEditAuthor: (authorId: string) => void;
 	onDeleteAuthor: (authorId: string) => void;
 }) => {
+	const { t } = useTranslation();
 	const canEdit = useLibraryStore((state) => state.library?.readOnly === false);
 	return (
 		// The whole row links to the library filtered by this author. The hover
@@ -428,7 +444,7 @@ const AuthorRow = ({
 				to="/"
 				search={{ author_id: author.id }}
 				className="ctd-author-row-link"
-				aria-label={`Show books by ${author.name}`}
+				aria-label={t("Show books by {{name}}", { name: author.name })}
 			/>
 
 			<span className={styles.cellText}>{author.name}</span>
@@ -441,7 +457,7 @@ const AuthorRow = ({
 				</span>
 			) : (
 				<div className={styles.visibleFromMd}>
-					<span className={styles.badge}>No sort name</span>
+					<span className={styles.badge}>{t("No sort name")}</span>
 				</div>
 			)}
 
@@ -458,7 +474,7 @@ const AuthorRow = ({
 					<>
 						<IconButton
 							className={styles.actionIcon}
-							aria-label={`Edit ${author.name}`}
+							aria-label={t("Edit {{name}}", { name: author.name })}
 							onClick={() => onEditAuthor(author.id)}
 						>
 							<EditGlyph />
@@ -466,7 +482,7 @@ const AuthorRow = ({
 						{author.book_count === 0 ? (
 							<IconButton
 								className={clsx(styles.actionIcon, styles.dangerIcon)}
-								aria-label={`Delete ${author.name}`}
+								aria-label={t("Delete {{name}}", { name: author.name })}
 								onClick={() => onDeleteAuthor(author.id)}
 							>
 								<TrashGlyph />

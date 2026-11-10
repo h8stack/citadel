@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
 	createRootRoute,
 	Outlet,
@@ -19,6 +20,7 @@ import { usePlatform } from "@/lib/platform/context";
 import classes from "./root.module.css";
 
 const Root = () => {
+	const { t } = useTranslation();
 	// The phone sidebar belongs to the page it was opened on: going anywhere
 	// closes it.
 	const [mobileOpenedOn, setMobileOpenedOn] = useState<string | null>(null);
@@ -51,20 +53,20 @@ const Root = () => {
 				<header className={classes.header} data-tauri-drag-region>
 					<div className={classes.headerControls} data-tauri-drag-region>
 						<IconButton
-							aria-label="Toggle sidebar"
+							aria-label={t("Toggle sidebar")}
 							className={clsx(classes.sidebarToggle, classes.mobileOnly)}
 							onClick={() =>
 								setMobileOpenedOn(mobileOpened ? null : location.href)
 							}
 						>
-							<F7SidebarLeft title="Toggle sidebar" />
+							<F7SidebarLeft title={t("Toggle sidebar")} />
 						</IconButton>
 						<IconButton
-							aria-label="Toggle sidebar"
+							aria-label={t("Toggle sidebar")}
 							className={clsx(classes.sidebarToggle, classes.desktopOnly)}
 							onClick={() => setDesktopOpened((open) => !open)}
 						>
-							<F7SidebarLeft title="Toggle sidebar" />
+							<F7SidebarLeft title={t("Toggle sidebar")} />
 						</IconButton>
 						<AddBookButton />
 						<UploadToolbarStatus />
@@ -79,7 +81,7 @@ const Root = () => {
 						<button
 							type="button"
 							tabIndex={-1}
-							aria-label="Close sidebar"
+							aria-label={t("Close sidebar")}
 							className={classes.scrim}
 							onClick={() => setMobileOpenedOn(null)}
 						/>

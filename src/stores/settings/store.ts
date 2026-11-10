@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { MetadataProvider } from "@/bindings";
+import type { TLanguage } from "@/lib/i18n/language";
 import type { Option } from "@/lib/option";
 import { none, some } from "@/lib/option";
 import { migrateSettings } from "@/lib/platform/settings/migrate";
@@ -28,6 +29,7 @@ interface SettingsStore extends SettingsSchema {
 
 	// Domain-specific actions
 	setTheme: (theme: "dark" | "light" | "auto") => Promise<void>;
+	setLanguage: (language: TLanguage) => Promise<void>;
 	setStartFullscreen: (enabled: boolean) => Promise<void>;
 	setAutoUpdateCheckingEnabled: (enabled: boolean) => Promise<void>;
 	setHasCompletedFirstLaunch: (enabled: boolean) => Promise<void>;
@@ -186,6 +188,10 @@ export const useSettings = create<SettingsStore>((set, get) => ({
 
 	setTheme: async (theme) => {
 		await persistSetting(set, get, "theme", theme);
+	},
+
+	setLanguage: async (language) => {
+		await persistSetting(set, get, "language", language);
 	},
 
 	setStartFullscreen: async (enabled) => {

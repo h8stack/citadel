@@ -1,5 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { DialogCloseButton } from "./DialogCloseButton";
 import styles from "./Drawer.module.css";
 import { ignorePopoverInteractOutside } from "./popover-interop";
@@ -38,35 +39,40 @@ export const Drawer = ({
 	onCloseAutoFocus,
 	onOpenAutoFocus,
 	bleed = false,
-}: DrawerProps) => (
-	<Dialog.Root open={open} onOpenChange={onOpenChange}>
-		<Dialog.Portal>
-			<Dialog.Overlay className={styles.overlay} />
-			{/* No Dialog.Description; aria-describedby={undefined} silences the Radix warning. */}
-			<Dialog.Content
-				className={styles.content}
-				data-bleed={bleed || undefined}
-				style={{ width: `min(${width}px, calc(100vw - 32px))` }}
-				aria-describedby={undefined}
-				onCloseAutoFocus={onCloseAutoFocus}
-				onOpenAutoFocus={onOpenAutoFocus}
-				onPointerDownOutside={ignorePopoverInteractOutside}
-				onInteractOutside={ignorePopoverInteractOutside}
-			>
-				<div className={styles.header}>
-					{title ? (
-						<Dialog.Title className={styles.title}>{title}</Dialog.Title>
-					) : (
-						// Radix requires a Title for screen readers even when the
-						// drawer has no visible heading.
-						<Dialog.Title className={styles.hiddenTitle}>Details</Dialog.Title>
-					)}
-					<Dialog.Close asChild>
-						<DialogCloseButton />
-					</Dialog.Close>
-				</div>
-				<div className={styles.body}>{children}</div>
-			</Dialog.Content>
-		</Dialog.Portal>
-	</Dialog.Root>
-);
+}: DrawerProps) => {
+	const { t } = useTranslation();
+	return (
+		<Dialog.Root open={open} onOpenChange={onOpenChange}>
+			<Dialog.Portal>
+				<Dialog.Overlay className={styles.overlay} />
+				{/* No Dialog.Description; aria-describedby={undefined} silences the Radix warning. */}
+				<Dialog.Content
+					className={styles.content}
+					data-bleed={bleed || undefined}
+					style={{ width: `min(${width}px, calc(100vw - 32px))` }}
+					aria-describedby={undefined}
+					onCloseAutoFocus={onCloseAutoFocus}
+					onOpenAutoFocus={onOpenAutoFocus}
+					onPointerDownOutside={ignorePopoverInteractOutside}
+					onInteractOutside={ignorePopoverInteractOutside}
+				>
+					<div className={styles.header}>
+						{title ? (
+							<Dialog.Title className={styles.title}>{title}</Dialog.Title>
+						) : (
+							// Radix requires a Title for screen readers even when the
+							// drawer has no visible heading.
+							<Dialog.Title className={styles.hiddenTitle}>
+								{t("Details")}
+							</Dialog.Title>
+						)}
+						<Dialog.Close asChild>
+							<DialogCloseButton />
+						</Dialog.Close>
+					</div>
+					<div className={styles.body}>{children}</div>
+				</Dialog.Content>
+			</Dialog.Portal>
+		</Dialog.Root>
+	);
+};

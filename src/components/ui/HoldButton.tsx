@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import type { CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	HOLD_MS,
 	HoldState,
@@ -32,6 +33,7 @@ export const HoldButton = ({
 	disabled = false,
 	className,
 }: HoldButtonProps) => {
+	const { t } = useTranslation();
 	const hold = useHoldToConfirm({ onConfirm, disabled });
 	return (
 		<span className={clsx(styles.wrap, className)}>
@@ -53,7 +55,7 @@ export const HoldButton = ({
 				data-label={label}
 				data-tone={tone}
 				disabled={disabled}
-				aria-label={`${label} (press and hold)`}
+				aria-label={t("{{label}} (press and hold)", { label })}
 				style={{ "--hold-ms": `${HOLD_MS}ms` } as CSSProperties}
 				{...hold.handlers}
 			>

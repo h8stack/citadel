@@ -4,6 +4,7 @@ import React, { type PropsWithChildren, useEffect, useCallback } from "react";
 import { DARK_MODE_EVENT_NAME } from "storybook-dark-mode";
 
 import { TooltipProvider } from "../src/components/ui";
+import "../src/lib/i18n";
 import "../src/styles.css";
 
 const STORYBOOK_IFRAME_PADDING_OFFSET = "36px";

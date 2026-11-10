@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { MetadataProvider } from "@/bindings";
+import i18next from "@/lib/i18n";
 import {
 	accountService,
 	type ProviderCredentialSummary,
@@ -76,7 +77,10 @@ export const useProviderCredential = (
 				setSaved(await accountService.saveProviderCredential(provider, secret));
 				await setProviderEnabled(provider, true);
 				await refreshAvailability();
-				setNotice({ tone: "ok", message: "Key checked and saved." });
+				setNotice({
+					tone: "ok",
+					message: i18next.t("Key checked and saved."),
+				});
 				return true;
 			} catch (error) {
 				setNotice({ tone: "error", message: messageOf(error) });
@@ -94,7 +98,7 @@ export const useProviderCredential = (
 		const result = await accountService.testProviderCredential(provider);
 		setNotice({
 			tone: result.ok ? "ok" : "error",
-			message: result.ok ? "Key works." : result.message,
+			message: result.ok ? i18next.t("Key works.") : result.message,
 		});
 		if (result.ok)
 			setSaved((current) =>

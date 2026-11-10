@@ -1,8 +1,9 @@
+import { isLanguage } from "@/lib/i18n/language";
 import { defaultSettings } from "./types";
 import type { MetadataProvidersSettings, SettingsSchema } from "./types";
 
 /** The current settings schema version. Bump when the shape changes. */
-export const CURRENT_SCHEMA_VERSION = 4;
+export const CURRENT_SCHEMA_VERSION = 5;
 
 /**
  * v0 -> v1: fold the flat `hardcoverApiKey` / `hardcoverAutoLookup` keys into
@@ -91,6 +92,16 @@ const migrateV3toV4 = (raw: SettingsSchema): SettingsSchema => {
 };
 
 /**
+ * v4 -> v5: add the UI language. Existing installs start in Vietnamese, the
+ * app default; a value the picker would not accept is normalized back.
+ */
+const migrateV4toV5 = (raw: SettingsSchema): SettingsSchema => ({
+	...raw,
+	settingsSchemaVersion: 5,
+	language: isLanguage(raw.language) ? raw.language : defaultSettings.language,
+});
+
+/**
  * Bring a loaded settings object up to the current schema version by applying
  * each step in order. Gated on an explicit version, not value-equality with
  * defaults — the very defaults these changes introduce would otherwise make the
@@ -109,6 +120,9 @@ export const migrateSettings = (raw: SettingsSchema): SettingsSchema => {
 	}
 	if (settings.settingsSchemaVersion < 4) {
 		settings = migrateV3toV4(settings);
+	}
+	if (settings.settingsSchemaVersion < 5) {
+		settings = migrateV4toV5(settings);
 	}
 	return settings;
 };

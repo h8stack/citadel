@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 import { UpdateBadge } from "@/components/atoms/UpdateBadge";
 import { F7Gear } from "@/components/icons/F7Gear";
 import { IconButton, Tooltip } from "@/components/ui";
@@ -20,12 +21,15 @@ export const SettingsButton = ({
 	active = false,
 	className,
 }: SettingsButtonProps) => {
+	const { t } = useTranslation();
 	const button = (
 		<IconButton
 			aria-label={
 				updateVersion
-					? `Settings, update available: ${updateVersion}`
-					: "Settings"
+					? t("Settings, update available: {{version}}", {
+							version: updateVersion,
+						})
+					: t("Settings")
 			}
 			className={clsx(styles.button, className)}
 			data-active={active || undefined}
@@ -43,7 +47,11 @@ export const SettingsButton = ({
 	);
 
 	return updateVersion ? (
-		<Tooltip label={`Update available: ${updateVersion}`}>{button}</Tooltip>
+		<Tooltip
+			label={t("Update available: {{version}}", { version: updateVersion })}
+		>
+			{button}
+		</Tooltip>
 	) : (
 		button
 	);

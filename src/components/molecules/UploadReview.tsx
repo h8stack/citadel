@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	ChevronLeftGlyph,
 	ChevronRightGlyph,
@@ -41,6 +42,7 @@ export const UploadReview = ({
 	onDone,
 	local = false,
 }: UploadReviewProps) => {
+	const { t } = useTranslation();
 	const { current } = deck;
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const scrolled = useScrolled(scrollRef);
@@ -51,33 +53,35 @@ export const UploadReview = ({
 	const actions = (
 		<>
 			<Button disabled={!current || busy} onClick={() => void deck.skip()}>
-				Skip
+				{t("Skip")}
 			</Button>
 			<Button
 				variant="primary"
 				disabled={!current || busy || deck.form.title.trim() === ""}
 				onClick={() => void deck.add()}
 			>
-				{current?.phase === UploadPhase.adding ? "Adding…" : "Add to Library"}
+				{current?.phase === UploadPhase.adding
+					? t("Adding…")
+					: t("Add to Library")}
 			</Button>
 		</>
 	);
 	return (
-		<section className={styles.review} aria-label="Review book">
+		<section className={styles.review} aria-label={t("Review book")}>
 			{/* Lifts off the form once the form scrolls under it. */}
 			<header className={styles.header} data-scrolled={scrolled || undefined}>
 				<button type="button" className={styles.back} onClick={onBack}>
 					<ChevronLeftGlyph />
 					<span className={styles.backWide}>
-						{local ? "All books" : "All uploads"}
+						{local ? t("All books") : t("All uploads")}
 					</span>
 					<span className={styles.backNarrow}>
-						{local ? "Books" : "Uploads"}
+						{local ? t("Books") : t("Uploads")}
 					</span>
 				</button>
-				<nav className={styles.pager} aria-label="Ready books">
+				<nav className={styles.pager} aria-label={t("Ready books")}>
 					<IconButton
-						aria-label="Previous book"
+						aria-label={t("Previous book")}
 						disabled={!deck.canPrevious}
 						onClick={deck.previous}
 					>
@@ -85,11 +89,14 @@ export const UploadReview = ({
 					</IconButton>
 					<span className={styles.position} aria-live="polite">
 						{deck.count === 0
-							? "None left"
-							: `${deck.index + 1} of ${deck.count}`}
+							? t("None left")
+							: t("{{position}} of {{total}}", {
+									position: deck.index + 1,
+									total: deck.count,
+								})}
 					</span>
 					<IconButton
-						aria-label="Next book"
+						aria-label={t("Next book")}
 						disabled={!deck.canNext}
 						onClick={deck.next}
 					>
@@ -98,7 +105,7 @@ export const UploadReview = ({
 				</nav>
 				{onDone && (
 					<button type="button" className={styles.done} onClick={onDone}>
-						Done
+						{t("Done")}
 					</button>
 				)}
 			</header>

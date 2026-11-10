@@ -21,6 +21,13 @@ sanitise-file-name = "1.0.0"
 # Same major as epub's, so the cover reader shares its archive code.
 zip = { version = "3", default-features = false, features = ["deflate"] }
 
+# Windows runners have no system libsqlite3 to link against. Enabling the
+# bundled build here covers every crate in a desktop/test build, since Cargo
+# unifies this package's features across the dependency graph. Keep the
+# version in step with the one diesel resolves in Cargo.lock.
+[target.'cfg(windows)'.dependencies]
+libsqlite3-sys = { version = "0.30.1", features = ["bundled"] }
+
 [dev-dependencies]
 fastrand = "2.3"
 image = { version = "0.25", default-features = false, features = ["jpeg"] }

@@ -1,9 +1,11 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FluentLibraryFilled } from "@/components/icons/FluentLibraryFilled";
 import { Button, Spinner } from "@/components/ui";
 import { REVEAL_ANIMATE_MIN } from "@/lib/first-run/machine";
+import i18next from "@/lib/i18n";
 import styles from "./FirstRunFlow.module.css";
 
 /*
@@ -16,7 +18,8 @@ import styles from "./FirstRunFlow.module.css";
 const EXIT_MS = 280;
 const ENTER_CLEANUP_MS = 340;
 
-export const fmt = (n: number) => n.toLocaleString("en-US");
+export const fmt = (n: number) =>
+	n.toLocaleString(i18next.language === "vi" ? "vi-VN" : "en-US");
 export const plural = (n: number, word: string) =>
 	n === 1 ? word : `${word}s`;
 
@@ -134,18 +137,21 @@ export const BackButton = ({
 	onClick: () => void;
 	disabled?: boolean;
 	autoFocus?: boolean;
-}) => (
-	<button
-		type="button"
-		className={styles.back}
-		disabled={disabled}
-		data-autofocus={autoFocus ? "true" : undefined}
-		onClick={onClick}
-	>
-		<ChevronLeft />
-		Back
-	</button>
-);
+}) => {
+	const { t } = useTranslation();
+	return (
+		<button
+			type="button"
+			className={styles.back}
+			disabled={disabled}
+			data-autofocus={autoFocus ? "true" : undefined}
+			onClick={onClick}
+		>
+			<ChevronLeft />
+			{t("Back")}
+		</button>
+	);
+};
 
 /* ------------------------------ card views ------------------------------ */
 
@@ -165,64 +171,77 @@ export const ChooserView = ({
 	disabled,
 	onAdopt,
 	onStartNew,
-	lede = "Citadel keeps your books in a Calibre‑compatible library.",
-	adoptDescription = "Open your existing library folder.",
-	createDescription = "Create an empty library at ~/Citadel.",
+	lede,
+	adoptDescription,
+	createDescription,
 	found,
-}: ChooserViewProps) => (
-	<>
-		<div className={styles.mark} aria-hidden="true">
-			<ShelfMark />
-		</div>
-		<h1 className={styles.title}>Set up your library</h1>
-		<p className={styles.lede}>{lede}</p>
-		<div className={styles.choices}>
-			{found && (
-				<>
-					{found}
-					<p className={styles.choicesLabel}>Or another folder</p>
-				</>
-			)}
-			<button
-				type="button"
-				className={styles.choice}
-				disabled={disabled}
-				data-autofocus={found ? undefined : "true"}
-				onClick={onAdopt}
-			>
-				<span className={styles.choiceIcon}>
-					<FolderGlyph />
-				</span>
-				<span>
-					<span className={styles.choiceTitle}>I have a Calibre library</span>
-					<br />
-					<span className={styles.choiceDesc}>{adoptDescription}</span>
-				</span>
-				<span className={styles.choiceChevron}>
-					<ChevronRight />
-				</span>
-			</button>
-			<button
-				type="button"
-				className={styles.choice}
-				disabled={disabled}
-				onClick={onStartNew}
-			>
-				<span className={styles.choiceIcon}>
-					<BookGlyph />
-				</span>
-				<span>
-					<span className={styles.choiceTitle}>Start a new library</span>
-					<br />
-					<span className={styles.choiceDesc}>{createDescription}</span>
-				</span>
-				<span className={styles.choiceChevron}>
-					<ChevronRight />
-				</span>
-			</button>
-		</div>
-	</>
-);
+}: ChooserViewProps) => {
+	const { t } = useTranslation();
+	return (
+		<>
+			<div className={styles.mark} aria-hidden="true">
+				<ShelfMark />
+			</div>
+			<h1 className={styles.title}>{t("Set up your library")}</h1>
+			<p className={styles.lede}>
+				{lede ?? t("Citadel keeps your books in a Calibre‑compatible library.")}
+			</p>
+			<div className={styles.choices}>
+				{found && (
+					<>
+						{found}
+						<p className={styles.choicesLabel}>{t("Or another folder")}</p>
+					</>
+				)}
+				<button
+					type="button"
+					className={styles.choice}
+					disabled={disabled}
+					data-autofocus={found ? undefined : "true"}
+					onClick={onAdopt}
+				>
+					<span className={styles.choiceIcon}>
+						<FolderGlyph />
+					</span>
+					<span>
+						<span className={styles.choiceTitle}>
+							{t("I have a Calibre library")}
+						</span>
+						<br />
+						<span className={styles.choiceDesc}>
+							{adoptDescription ?? t("Open your existing library folder.")}
+						</span>
+					</span>
+					<span className={styles.choiceChevron}>
+						<ChevronRight />
+					</span>
+				</button>
+				<button
+					type="button"
+					className={styles.choice}
+					disabled={disabled}
+					onClick={onStartNew}
+				>
+					<span className={styles.choiceIcon}>
+						<BookGlyph />
+					</span>
+					<span>
+						<span className={styles.choiceTitle}>
+							{t("Start a new library")}
+						</span>
+						<br />
+						<span className={styles.choiceDesc}>
+							{createDescription ?? t("Create an empty library at ~/Citadel.")}
+						</span>
+					</span>
+					<span className={styles.choiceChevron}>
+						<ChevronRight />
+					</span>
+				</button>
+			</div>
+		</>
+	);
+};
 
 export interface RevealViewProps {
 	books: number;
@@ -242,13 +261,16 @@ export const RevealView = ({
 	announce,
 	onContinue,
 }: RevealViewProps) => {
+	const { t } = useTranslation();
 	const animate = !reduced && books >= REVEAL_ANIMATE_MIN;
 	const [shown, setShown] = useState(() =>
 		animate ? { books: 0, authors: 0 } : { books, authors },
 	);
 
 	useEffect(() => {
-		const settled = `Library opened. ${fmt(books)} ${plural(books, "book")} by ${fmt(authors)} ${plural(authors, "author")}.`;
+		const settled = t("Library opened. {{summary}}.", {
+			summary: `${t(books === 1 ? "{{books}} book" : "{{books}} books", { books: fmt(books) })} ${t(authors === 1 ? "by {{authors}} author" : "by {{authors}} authors", { authors: fmt(authors) })}`,
+		});
 		if (!animate) {
 			setShown({ books, authors });
 			announce(settled);
@@ -273,18 +295,27 @@ export const RevealView = ({
 		};
 		raf = requestAnimationFrame(tick);
 		return () => cancelAnimationFrame(raf);
-	}, [books, authors, animate, announce]);
+	}, [books, authors, animate, announce, t]);
 
 	return (
 		<>
 			<h1 className={clsx(styles.title, styles.titleSm)}>
-				Your library is ready.
+				{t("Your library is ready.")}
 			</h1>
 			<div className={styles.count}>
-				{fmt(shown.books)} {plural(books, "book")}
+				{t(shown.books === 1 ? "{{books}} book" : "{{books}} books", {
+					books: fmt(shown.books),
+				})}
 			</div>
 			<div className={styles.countSub}>
-				by {fmt(shown.authors)} {plural(authors, "author")}
+				{t(
+					shown.authors === 1
+						? "by {{authors}} author"
+						: "by {{authors}} authors",
+					{
+						authors: fmt(shown.authors),
+					},
+				)}
 			</div>
 			<div className={clsx(styles.actions, styles.revealActions)}>
 				<Button
@@ -293,7 +324,7 @@ export const RevealView = ({
 					data-autofocus="true"
 					onClick={onContinue}
 				>
-					Show Books
+					{t("Show Books")}
 				</Button>
 			</div>
 		</>

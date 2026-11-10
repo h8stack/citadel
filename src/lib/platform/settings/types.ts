@@ -1,4 +1,5 @@
 import type { MetadataProvider } from "@/bindings";
+import type { TLanguage } from "@/lib/i18n/language";
 
 // Owned here (not in the library-view store) so the platform settings layer
 // never depends on the stores layer; the store re-exports it.
@@ -67,6 +68,8 @@ export interface SharingSettings {
 
 export interface SettingsSchema {
 	theme: "dark" | "light" | "auto";
+	/** UI language; Vietnamese is the default. */
+	language: TLanguage;
 	startFullscreen: boolean;
 	autoUpdateCheckingEnabled: boolean;
 	hasCompletedFirstLaunch: boolean;
@@ -90,6 +93,7 @@ export interface SettingsSchema {
 
 export const defaultSettings: SettingsSchema = {
 	theme: "auto",
+	language: "vi",
 	startFullscreen: false,
 	autoUpdateCheckingEnabled: true,
 	hasCompletedFirstLaunch: false,

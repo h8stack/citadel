@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import clsx from "clsx";
 import DOMPurify from "dompurify";
+import { useTranslation } from "react-i18next";
 import {
 	type CSSProperties,
 	Fragment,
@@ -20,6 +21,7 @@ import { safeAsyncEventHandler } from "@/lib/async";
 import { bookFormatRows, remoteBookDownloads } from "@/lib/book-downloads";
 import { backdropColors } from "@/lib/cover-palette";
 import { useCoverPalette } from "@/lib/hooks/use-cover-palette";
+import i18next from "@/lib/i18n";
 import { languageNameForCode } from "@/lib/languages";
 import { usePlatform } from "@/lib/platform/context";
 import { formatSeriesIndex } from "@/lib/series";
@@ -42,6 +44,7 @@ interface BookDrawerProps {
  * about, its tags, files and details.
  */
 export const BookDrawer = ({ book, onClose }: BookDrawerProps) => {
+	const { t } = useTranslation();
 	const coverUrl = book.cover_image?.url ?? null;
 	const palette = useCoverPalette(coverUrl);
 	const colors = palette ? backdropColors(palette) : null;
@@ -61,7 +64,7 @@ export const BookDrawer = ({ book, onClose }: BookDrawerProps) => {
 				<div className={styles.cover}>
 					<BookCover book={book} disableFade fluid />
 					{book.is_read && (
-						<span className={styles.seal} role="img" aria-label="Finished">
+						<span className={styles.seal} role="img" aria-label={t("Finished")}>
 							<svg viewBox="0 0 16 16" aria-hidden="true">
 								<path d="M4.25 8.4 6.9 10.9 11.75 5.6" />
 							</svg>
@@ -87,10 +90,11 @@ export const BookDrawer = ({ book, onClose }: BookDrawerProps) => {
 
 const joinNames = (count: number, index: number): string => {
 	if (index === 0) return "";
-	return index === count - 1 ? " and " : ", ";
+	return index === count - 1 ? ` ${i18next.t("and")} ` : ", ";
 };
 
 const Byline = ({ book, onClose }: BookDrawerProps) => {
+	const { t } = useTranslation();
 	// Books carry only their series NAME; LibraryBookQuery filters on the id,
 	// which comes from the store's series list.
 	const seriesList = useSeriesList();
@@ -102,7 +106,7 @@ const Byline = ({ book, onClose }: BookDrawerProps) => {
 		<>
 			{book.author_list.length > 0 && (
 				<p className={styles.authors}>
-					by{" "}
+					{t("by")}{" "}
 					{book.author_list.map((author, index) => (
 						<Fragment key={author.id}>
 							{joinNames(book.author_list.length, index)}
@@ -121,8 +125,10 @@ const Byline = ({ book, onClose }: BookDrawerProps) => {
 			{book.series !== null && (
 				<p className={styles.series}>
 					{book.series_index !== null
-						? `Book ${formatSeriesIndex(book.series_index)} of `
-						: "Part of "}
+						? `${t("Book {{index}} of", {
+								index: formatSeriesIndex(book.series_index),
+							})} `
+						: `${t("Part of")} `}
 					{seriesId !== undefined ? (
 						<Link
 							to="/"
@@ -149,6 +155,7 @@ const Actions = ({
 	book: LibraryBook;
 	className?: string;
 }) => {
+	const { t } = useTranslation();
 	const platform = usePlatform();
 	const navigate = useNavigate();
 	const canEdit = useLibraryStore((state) => state.library?.readOnly === false);
@@ -172,7 +179,7 @@ const Actions = ({
 					)}
 				>
 					<BookGlyph />
-					Read
+					{t("Read")}
 				</Button>
 			) : (
 				download && (
@@ -186,7 +193,7 @@ const Actions = ({
 						download
 						data-drawer-initial-focus=""
 					>
-						Download
+						{t("Download")}
 					</a>
 				)
 			)}
@@ -200,7 +207,7 @@ const Actions = ({
 					}
 				>
 					<EditGlyph />
-					Edit
+					{t("Edit")}
 				</Button>
 			)}
 		</div>
@@ -236,6 +243,7 @@ const Chevron = ({ up }: { up: boolean }) => (
 );
 
 const Description = ({ html }: { html: string | null }) => {
+	const { t } = useTranslation();
 	const textRef = useRef<HTMLDivElement>(null);
 	const [expanded, setExpanded] = useState(false);
 	const [overflows, setOverflows] = useState(false);
@@ -267,7 +275,7 @@ const Description = ({ html }: { html: string | null }) => {
 					aria-expanded={expanded}
 					onClick={() => setExpanded(!expanded)}
 				>
-					{expanded ? "Less" : "More"}
+					{expanded ? t("Less") : t("More")}
 					<Chevron up={expanded} />
 				</Button>
 			)}
@@ -276,6 +284,7 @@ const Description = ({ html }: { html: string | null }) => {
 };
 
 const Tags = ({ book, onClose }: BookDrawerProps) => {
+	const { t } = useTranslation();
 	const tags = useTags();
 	const actions = useLibraryActions();
 	useEffect(() => {
@@ -284,7 +293,7 @@ const Tags = ({ book, onClose }: BookDrawerProps) => {
 	if (book.tag_list.length === 0) return null;
 	return (
 		<section className={styles.section}>
-			<h3 className={styles.sectionTitle}>Tags</h3>
+			<h3 className={styles.sectionTitle}>{t("Tags")}</h3>
 			<ul className={styles.tags}>
 				{book.tag_list.map((name) => {
 					const id = tags?.find((tag) => tag.name === name)?.id;
@@ -311,11 +320,12 @@ const Tags = ({ book, onClose }: BookDrawerProps) => {
 };
 
 const Files = ({ book }: { book: LibraryBook }) => {
+	const { t } = useTranslation();
 	const rows = bookFormatRows(book.file_list);
 	if (rows.length === 0) return null;
 	return (
 		<section className={styles.section}>
-			<h3 className={styles.sectionTitle}>Files</h3>
+			<h3 className={styles.sectionTitle}>{t("Files")}</h3>
 			<FileTiles rows={rows} />
 		</section>
 	);
@@ -361,6 +371,7 @@ const formatAdded = (iso: string): string | null => {
 };
 
 const Details = ({ book }: { book: LibraryBook }) => {
+	const { t } = useTranslation();
 	const added = formatAdded(book.added_at);
 	const languages = book.language_list.map(languageNameForCode).join(", ");
 	if (
@@ -371,17 +382,17 @@ const Details = ({ book }: { book: LibraryBook }) => {
 		return null;
 	return (
 		<section className={styles.section}>
-			<h3 className={styles.sectionTitle}>Details</h3>
+			<h3 className={styles.sectionTitle}>{t("Details")}</h3>
 			<dl className={styles.details}>
 				{added !== null && (
 					<>
-						<dt>Added</dt>
+						<dt>{t("Added")}</dt>
 						<dd>{added}</dd>
 					</>
 				)}
 				{languages.length > 0 && (
 					<>
-						<dt>Language</dt>
+						<dt>{t("Language")}</dt>
 						<dd>{languages}</dd>
 					</>
 				)}
@@ -397,6 +408,7 @@ const Details = ({ book }: { book: LibraryBook }) => {
 };
 
 const IdentifierRow = ({ identifier }: { identifier: Identifier }) => {
+	const { t } = useTranslation();
 	const platform = usePlatform();
 	const [copied, setCopied] = useState(false);
 	useEffect(() => {
@@ -417,7 +429,7 @@ const IdentifierRow = ({ identifier }: { identifier: Identifier }) => {
 						href={url}
 						target="_blank"
 						rel="noreferrer"
-						title={`Open on ${name}`}
+						title={t("Open on {{name}}", { name })}
 					>
 						<span className={styles.value}>{identifier.value}</span>
 						<svg
@@ -437,11 +449,14 @@ const IdentifierRow = ({ identifier }: { identifier: Identifier }) => {
 					<span className={styles.value}>{identifier.value}</span>
 				)}
 				{!url && platform.capabilities.canCopyToClipboard && (
-					<Tooltip label={copied ? "Copied" : `Copy ${name}`} openDelay={200}>
+					<Tooltip
+						label={copied ? t("Copied") : t("Copy {{name}}", { name })}
+						openDelay={200}
+					>
 						<button
 							type="button"
 							className={styles.copy}
-							aria-label={`Copy ${name}`}
+							aria-label={t("Copy {{name}}", { name })}
 							onClick={safeAsyncEventHandler(async () => {
 								await platform.clipboard.writeText(identifier.value);
 								setCopied(true);

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { DatabaseProblem, RecoveryStep } from "@/bindings";
-import { NO_UPDATE_MESSAGE } from "@/lib/database-recovery/copy";
+import { noUpdateMessage } from "@/lib/database-recovery/copy";
 import { usePlatform } from "@/lib/platform/context";
 
 export interface DatabaseRecovery {
@@ -32,7 +32,7 @@ export const useDatabaseRecovery = (
 				step === "update"
 					? platform.updates.updateNow().then((outcome) => {
 							// A successful install restarts the app.
-							if (outcome === "noUpdate") throw new Error(NO_UPDATE_MESSAGE);
+							if (outcome === "noUpdate") throw new Error(noUpdateMessage());
 						})
 					: platform.recovery.recover(step);
 			run.catch((cause: unknown) => {

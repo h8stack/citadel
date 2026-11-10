@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import styles from "./ContextMenu.module.css";
 import { POPOVER_ATTRIBUTE } from "./popover-interop";
 
@@ -37,6 +38,7 @@ export const ContextMenu = ({
 	returnFocusRef,
 	onClose,
 }: ContextMenuProps) => {
+	const { t } = useTranslation();
 	const menuRef = useRef<HTMLDivElement>(null);
 	const [position, setPosition] = useState<{
 		left: number;
@@ -136,7 +138,7 @@ export const ContextMenu = ({
 		<div
 			ref={menuRef}
 			role="menu"
-			aria-label="Library actions"
+			aria-label={t("Library actions")}
 			className={styles.menu}
 			{...{ [POPOVER_ATTRIBUTE]: "" }}
 			style={{

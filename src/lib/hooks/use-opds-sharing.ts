@@ -8,6 +8,7 @@ import type {
 } from "@/bindings";
 import type { OpdsClient } from "@/lib/services/opds";
 import { opdsClientForPlatform } from "@/lib/services/opds";
+import i18next from "@/lib/i18n";
 
 const POLL_INTERVAL_MS = 1_000;
 /** Only surface the busy state when an action is actually slow. */
@@ -63,7 +64,7 @@ const noClient = (source: SharingErrorSource): RunResult<never> => ({
 	error: {
 		source,
 		code: null,
-		message: "Sharing is not available on this platform.",
+		message: i18next.t("Sharing is not available on this platform."),
 	},
 });
 
@@ -73,7 +74,7 @@ const serviceError = (status: OpdsServiceStatus): SharingError | null => {
 	return {
 		source: SHARING_ERROR_SOURCE.server,
 		code: status.error?.code ?? null,
-		message: status.error?.message ?? "Sharing could not start.",
+		message: status.error?.message ?? i18next.t("Sharing could not start."),
 	};
 };
 

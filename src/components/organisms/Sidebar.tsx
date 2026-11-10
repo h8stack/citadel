@@ -1,6 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { EditGlyph } from "@/components/icons/EditGlyph";
 import { TrashGlyph } from "@/components/icons/TrashGlyph";
 import { TablerLogout } from "@/components/icons/TablerLogout";
@@ -83,6 +84,7 @@ const SidebarPure = ({
 	session,
 	settingsShowing,
 }: SidebarPureProps) => {
+	const { t } = useTranslation();
 	const platform = usePlatform();
 	const allShelves = useSettings((s) => s.smartShelves);
 	const libraryId = useLibrarySelection().activeLibrary?.id;
@@ -147,7 +149,7 @@ const SidebarPure = ({
 					{platform.capabilities.canPickLocalFiles && libraryCount >= 2 ? (
 						<LibraryPicker />
 					) : (
-						<h2 className={styles.sectionLabel}>Library</h2>
+						<h2 className={styles.sectionLabel}>{t("Library")}</h2>
 					)}
 					<Link
 						to="/"
@@ -155,40 +157,40 @@ const SidebarPure = ({
 						data-active={isAllBooksActive || undefined}
 						onClick={() => resetToAllBooks()}
 					>
-						All Books
+						{t("All Books")}
 					</Link>
 					<Link
 						to="/authors"
 						className={clsx("ctd-nav-link", styles.navLink)}
 						data-active={currentPathname === "/authors" || undefined}
 					>
-						Authors
+						{t("Authors")}
 					</Link>
 					<Link
 						to="/series"
 						className={clsx("ctd-nav-link", styles.navLink)}
 						data-active={currentPathname === "/series" || undefined}
 					>
-						Series
+						{t("Series")}
 					</Link>
 					<Link
 						to="/tags"
 						className={clsx("ctd-nav-link", styles.navLink)}
 						data-active={currentPathname === "/tags" || undefined}
 					>
-						Tags
+						{t("Tags")}
 					</Link>
 					<Link
 						to="/publishers"
 						className={clsx("ctd-nav-link", styles.navLink)}
 						data-active={currentPathname === "/publishers" || undefined}
 					>
-						Publishers
+						{t("Publishers")}
 					</Link>
 				</div>
 				{smartShelves.length > 0 && (
 					<div className={styles.section}>
-						<h2 className={styles.sectionLabel}>Shelves</h2>
+						<h2 className={styles.sectionLabel}>{t("Shelves")}</h2>
 						{smartShelves.map((shelf) => (
 							<ShelfRow
 								key={shelf.id}
@@ -205,9 +207,15 @@ const SidebarPure = ({
 			</div>
 			<div className={clsx(styles.section, session && styles.footer)}>
 				{session && (
-					<Tooltip label={`Signed in as ${session.username} · Sign out`}>
+					<Tooltip
+						label={t("Signed in as {{username}} · Sign out", {
+							username: session.username,
+						})}
+					>
 						<IconButton
-							aria-label={`Sign out ${session.username}`}
+							aria-label={t("Sign out {{username}}", {
+								username: session.username,
+							})}
 							className={clsx("ctd-settings-button", styles.settingsButton)}
 							onClick={safeAsyncEventHandler(session.signOut)}
 						>
@@ -232,13 +240,17 @@ interface ShelfRowProps {
 }
 
 const ShelfRow = ({ shelf, isActive }: ShelfRowProps) => {
+	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const applyShelf = useLibraryView((s) => s.applyShelf);
 	const activeShelfId = useLibraryView((s) => s.activeShelfId);
 	const resetToAllBooks = useLibraryView((s) => s.resetToAllBooks);
+	// The seeded shelf keeps a language-neutral stored name; show it localized
+	// until the user renames it (after which the stored name is their copy).
+	const displayName = shelf.id === "builtin-unread" ? t("Unread") : shelf.name;
 
 	const [isRenaming, setIsRenaming] = useState(false);
-	const [draftName, setDraftName] = useState(shelf.name);
+	const [draftName, setDraftName] = useState(displayName);
 	const [renameError, setRenameError] = useState<string | null>(null);
 
 	// Finder-style inline rename: Enter and blur both commit, Escape cancels.
@@ -256,7 +268,7 @@ const ShelfRow = ({ shelf, isActive }: ShelfRowProps) => {
 			<TextInput
 				value={draftName}
 				error={renameError}
-				aria-label={`Shelf name for ${shelf.name}`}
+				aria-label={t("Shelf name for {{name}}", { name: displayName })}
 				// biome-ignore lint/a11y/noAutofocus: inline rename replaces the row the user just clicked; focus must land in the input.
 				autoFocus
 				className={styles.renameInput}
@@ -287,14 +299,14 @@ const ShelfRow = ({ shelf, isActive }: ShelfRowProps) => {
 					void navigate({ to: "/", search: shelfRouteFilters(shelf.filter) });
 				}}
 			>
-				<span className={styles.shelfName}>{shelf.name}</span>
+				<span className={styles.shelfName}>{displayName}</span>
 			</button>
 			<span className={styles.shelfControls}>
 				<IconButton
-					aria-label={`Rename shelf ${shelf.name}`}
+					aria-label={t("Rename shelf {{name}}", { name: displayName })}
 					className={styles.shelfControlButton}
 					onClick={() => {
-						setDraftName(shelf.name);
+						setDraftName(displayName);
 						setRenameError(null);
 						setIsRenaming(true);
 					}}
@@ -302,7 +314,7 @@ const ShelfRow = ({ shelf, isActive }: ShelfRowProps) => {
 					<EditGlyph />
 				</IconButton>
 				<IconButton
-					aria-label={`Delete shelf ${shelf.name}`}
+					aria-label={t("Delete shelf {{name}}", { name: displayName })}
 					className={styles.shelfControlButton}
 					onClick={safeAsyncEventHandler(async () => {
 						await deleteSmartShelf(shelf.id);

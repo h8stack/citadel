@@ -1,4 +1,5 @@
 import { type FormEvent, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FluentLibraryFilled } from "@/components/icons/FluentLibraryFilled";
 import { Button, TextInput } from "@/components/ui";
 import styles from "./SignInForm.module.css";
@@ -15,6 +16,7 @@ export const AdministratorSetupForm = ({
 	pending,
 	error,
 }: AdministratorSetupFormProps) => {
+	const { t } = useTranslation();
 	const [setupCode, setSetupCode] = useState("");
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
@@ -28,11 +30,11 @@ export const AdministratorSetupForm = ({
 				<div className={styles.mark} aria-hidden="true">
 					<FluentLibraryFilled fontSize={28} />
 				</div>
-				<h1 className={styles.title}>Set up Citadel</h1>
+				<h1 className={styles.title}>{t("Set up Citadel")}</h1>
 				<TextInput
-					label="Setup code"
+					label={t("Setup code")}
 					name="setupCode"
-					hint="Printed in the server's output when it started."
+					hint={t("Printed in the server's output when it started.")}
 					autoComplete="one-time-code"
 					autoCapitalize="characters"
 					spellCheck={false}
@@ -41,7 +43,7 @@ export const AdministratorSetupForm = ({
 					onChange={(event) => setSetupCode(event.currentTarget.value)}
 				/>
 				<TextInput
-					label="Username"
+					label={t("Username")}
 					name="username"
 					autoComplete="username"
 					autoCapitalize="none"
@@ -51,13 +53,13 @@ export const AdministratorSetupForm = ({
 					onChange={(event) => setUsername(event.currentTarget.value)}
 				/>
 				<TextInput
-					label="Password"
+					label={t("Password")}
 					name="password"
 					type="password"
 					autoComplete="new-password"
 					required
 					minLength={8}
-					hint="At least 8 characters."
+					hint={t("At least 8 characters.")}
 					value={password}
 					onChange={(event) => setPassword(event.currentTarget.value)}
 				/>
@@ -67,7 +69,7 @@ export const AdministratorSetupForm = ({
 					</p>
 				)}
 				<Button type="submit" variant="primary" fullWidth disabled={pending}>
-					{pending ? "Creating…" : "Create Administrator"}
+					{pending ? t("Creating…") : t("Create Administrator")}
 				</Button>
 			</form>
 		</main>

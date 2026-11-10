@@ -1,4 +1,6 @@
+import type { TFunction } from "i18next";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button, TextInput } from "@/components/ui";
 import {
 	type LibraryStatsState,
@@ -16,8 +18,21 @@ interface CurrentLibraryCardProps {
 	statsOverride?: LibraryStatsState;
 }
 
-const plural = (count: number, word: string) =>
-	count === 1 ? word : `${word}s`;
+const formatContents = (
+	stats: { book_count: number; author_count: number },
+	t: TFunction,
+) => {
+	const books = stats.book_count;
+	const authors = stats.author_count;
+	if (books === 1) {
+		return authors === 1
+			? t("{{books}} book · {{authors}} author", { books, authors })
+			: t("{{books}} book · {{authors}} authors", { books, authors });
+	}
+	return authors === 1
+		? t("{{books}} books · {{authors}} author", { books, authors })
+		: t("{{books}} books · {{authors}} authors", { books, authors });
+};
 
 /**
  * "Current Library" card: editable name, a Show-in-Finder affordance for the
@@ -28,6 +43,7 @@ export const CurrentLibraryCard = ({
 	onRevealInFileManager,
 	statsOverride,
 }: CurrentLibraryCardProps) => {
+	const { t } = useTranslation();
 	const fetchedStats = useLibraryStats(
 		library.absolutePath,
 		statsOverride === undefined,
@@ -54,20 +70,20 @@ export const CurrentLibraryCard = ({
 		stats.status === "loading"
 			? "…"
 			: stats.status === "loaded"
-				? `${stats.stats.book_count} ${plural(stats.stats.book_count, "book")} · ${stats.stats.author_count} ${plural(stats.stats.author_count, "author")}`
+				? formatContents(stats.stats, t)
 				: null;
 
 	return (
 		<div>
-			<h4 className={styles.cardTitle}>Current Library</h4>
+			<h4 className={styles.cardTitle}>{t("Current Library")}</h4>
 			<div className={styles.card}>
 				<div className={styles.row}>
-					<span className={styles.rowLabel}>Name</span>
+					<span className={styles.rowLabel}>{t("Name")}</span>
 					<TextInput
 						className={styles.nameInput}
 						value={draftName}
 						error={nameError}
-						aria-label="Library name"
+						aria-label={t("Library name")}
 						onChange={(event) => {
 							setDraftName(event.currentTarget.value);
 							setNameError(null);
@@ -85,15 +101,15 @@ export const CurrentLibraryCard = ({
 				</div>
 				{onRevealInFileManager !== null && (
 					<div className={styles.row}>
-						<span className={styles.rowLabel}>Location</span>
+						<span className={styles.rowLabel}>{t("Location")}</span>
 						<Button variant="default" onClick={onRevealInFileManager}>
-							Show in Finder
+							{t("Show in Finder")}
 						</Button>
 					</div>
 				)}
 				{contents !== null && (
 					<div className={styles.row}>
-						<span className={styles.rowLabel}>Contents</span>
+						<span className={styles.rowLabel}>{t("Contents")}</span>
 						<span className={styles.rowValue}>{contents}</span>
 					</div>
 				)}

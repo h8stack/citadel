@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import i18next from "@/lib/i18n";
 import { countdown, describeDeadline } from "./countdown";
 
 const HOUR = 60 * 60 * 1000;
@@ -7,6 +8,9 @@ const at = (hours: number) =>
 	new Date(now.getTime() + hours * HOUR).toISOString();
 
 describe("review countdown", () => {
+	beforeEach(async () => {
+		await i18next.changeLanguage("en");
+	});
 	it("says when drafts have expired, without calling for attention", () => {
 		expect(countdown(at(-1), now, 24 * 3600)).toEqual({
 			urgent: false,

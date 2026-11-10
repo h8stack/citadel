@@ -1,5 +1,6 @@
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	LoadingOverlay,
 	Toaster,
@@ -10,6 +11,7 @@ import { IS_DEV } from "@/lib/env";
 import { useInitializeLibraryStore } from "@/lib/hooks/use-initialize-library-store";
 import { useLibrarySwitch } from "@/lib/hooks/use-library-switch";
 import { useRestoredDatabaseNotice } from "@/lib/hooks/use-restored-database-notice";
+import { useApplyLanguage } from "@/lib/i18n/use-apply-language";
 import { usePlatform } from "@/lib/platform/context";
 import { useApplyColorScheme } from "@/lib/theme-manager";
 import { safeAsyncEventHandler } from "$lib/async";
@@ -57,8 +59,11 @@ declare module "@tanstack/react-router" {
 export const App = () => {
 	const hydrated = useSettings((state) => state.hydrated);
 	const theme = useSettings((state) => state.theme);
+	const language = useSettings((state) => state.language);
 	const platform = usePlatform();
+	const { t } = useTranslation();
 	useApplyColorScheme(theme);
+	useApplyLanguage(language);
 	const { stage: switchStage } = useLibrarySwitch();
 	useRestoredDatabaseNotice(hydrated);
 
@@ -77,11 +82,19 @@ export const App = () => {
 		const one = droppedLibraries.length === 1;
 		toast.show({
 			id: "dropped-libraries",
-			title: one ? "A library is missing" : "Some libraries are missing",
-			message: `Couldn’t find ${names}, so ${one ? "it’s" : "they’re"} no longer in your library list. Add ${one ? "it" : "them"} again from the new location.`,
+			title: one ? t("A library is missing") : t("Some libraries are missing"),
+			message: one
+				? t(
+						"Couldn’t find {{names}}, so it’s no longer in your library list. Add it again from the new location.",
+						{ names },
+					)
+				: t(
+						"Couldn’t find {{names}}, so they’re no longer in your library list. Add them again from the new location.",
+						{ names },
+					),
 			duration: 15000,
 		});
-	}, [droppedLibraries]);
+	}, [droppedLibraries, t]);
 
 	useEffect(() => {
 		if (!hydrated || !platform.capabilities.supportsAutoUpdates || IS_DEV)

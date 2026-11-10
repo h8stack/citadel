@@ -8,6 +8,7 @@ import {
 } from "@/bindings";
 import {
 	BookDeletion,
+	COVER_EXPIRED_ERROR,
 	CoverExpiredError,
 	type Library,
 	type LocalBookImports,
@@ -110,10 +111,7 @@ export const createTauriLibrary = (): Library => {
 		},
 		setBookCoverFromMetadata: async (id, coverId) => {
 			const result = await commands.clbCmdSetBookCoverFromMetadata(id, coverId);
-			if (
-				result.status === "error" &&
-				result.error === new CoverExpiredError().message
-			)
+			if (result.status === "error" && result.error === COVER_EXPIRED_ERROR)
 				throw new CoverExpiredError();
 			unwrap(result);
 		},
