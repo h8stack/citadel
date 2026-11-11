@@ -225,9 +225,9 @@ jobs:
           prerelease: ${{ needs.version.outputs.prerelease == 'true' }}
           generateReleaseNotes: true
 
-      # The portable zip is the unbundled app itself: no installer, just the
-      # self-contained executable (WebView2 ships with Windows 10/11).
-      - name: (Windows only) Attach portable build
+      # One downloadable file per format: the portable executable, the MSI and
+      # the NSIS setup. Never a single bundle of everything.
+      - name: (Windows only) Attach individual binaries
         if: matrix.platform == 'windows-2022'
         shell: pwsh
         env:
@@ -239,11 +239,14 @@ jobs:
             throw "No Citadel executable found in target/release"
           }
           $version = "${{ needs.version.outputs.version }}"
-          $name = "Citadel_${version}_x64_portable"
-          New-Item -ItemType Directory -Path portable -Force | Out-Null
-          Copy-Item $exe "portable/Citadel.exe"
-          Compress-Archive -Path "portable/Citadel.exe" -DestinationPath "$name.zip"
-          gh release upload "v$version" "$name.zip" --clobber --repo "$env:GITHUB_REPOSITORY"
+          $portable = "Citadel_${version}_x64_portable.exe"
+          Copy-Item $exe $portable
+          $files = @($portable)
+          $msi = Get-ChildItem "target/release/bundle/msi/*.msi" -ErrorAction SilentlyContinue | Select-Object -First 1
+          $setup = Get-ChildItem "target/release/bundle/nsis/*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($msi) { $files += $msi.FullName }
+          if ($setup) { $files += $setup.FullName }
+          gh release upload "v$version" $files --clobber --repo "$env:GITHUB_REPOSITORY"
 
       # Must run after the build: create-pull-request resets the working tree
       # to the base branch, which would strip the applied version bump and
