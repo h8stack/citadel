@@ -72,3 +72,25 @@ jobs:
           path: |
             target/release/bundle/nsis/*.exe
             target/release/bundle/msi/*.msi
+
+      - name: (Windows only) Package portable build
+        if: matrix.platform == 'windows-2022'
+        shell: pwsh
+        run: |
+          $candidates = @("target/release/Citadel.exe", "target/release/citadel-desktop.exe")
+          $exe = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $exe) {
+            throw "No Citadel executable found in target/release"
+          }
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $name = "Citadel_${version}_x64_portable"
+          New-Item -ItemType Directory -Path portable -Force | Out-Null
+          Copy-Item $exe "portable/Citadel.exe"
+          Compress-Archive -Path "portable/Citadel.exe" -DestinationPath "$name.zip"
+
+      - name: (Windows only) Upload portable build
+        if: matrix.platform == 'windows-2022'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-portable-zip
+          path: Citadel_*_x64_portable.zip

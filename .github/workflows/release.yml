@@ -225,6 +225,26 @@ jobs:
           prerelease: ${{ needs.version.outputs.prerelease == 'true' }}
           generateReleaseNotes: true
 
+      # The portable zip is the unbundled app itself: no installer, just the
+      # self-contained executable (WebView2 ships with Windows 10/11).
+      - name: (Windows only) Attach portable build
+        if: matrix.platform == 'windows-2022'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.CITADEL_RELEASE_TOKEN }}
+        run: |
+          $candidates = @("target/release/Citadel.exe", "target/release/citadel-desktop.exe")
+          $exe = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $exe) {
+            throw "No Citadel executable found in target/release"
+          }
+          $version = "${{ needs.version.outputs.version }}"
+          $name = "Citadel_${version}_x64_portable"
+          New-Item -ItemType Directory -Path portable -Force | Out-Null
+          Copy-Item $exe "portable/Citadel.exe"
+          Compress-Archive -Path "portable/Citadel.exe" -DestinationPath "$name.zip"
+          gh release upload "v$version" "$name.zip" --clobber --repo "$env:GITHUB_REPOSITORY"
+
       # Must run after the build: create-pull-request resets the working tree
       # to the base branch, which would strip the applied version bump and
       # produce artifacts built with the old version.

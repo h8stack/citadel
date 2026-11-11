@@ -49,6 +49,11 @@ confirm the publisher. Development builds are uploaded from the
 [Build workflow](https://github.com/everydaythingssoftware/citadel/actions/workflows/build.yml)
 as the `windows-exe-and-msi` artifact.
 
+There is also a **portable** `Citadel_<version>_x64_portable.zip`: unzip it
+anywhere and run `Citadel.exe`. No installation is needed; the Microsoft Edge
+WebView2 runtime it relies on ships with Windows 10/11. Portable builds are
+available as the `windows-portable-zip` CI artifact and on the Releases page.
+
 ### Languages
 
 Citadel ships in Vietnamese (the default) and English. Change the language
