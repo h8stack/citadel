@@ -4,8 +4,8 @@ on:
     branches:
       - main
   pull_request:
-  # Lets a maintainer (or a fork owner) run the desktop matrix — including
-  # windows-2022 — without waiting for a push.
+  # Lets a maintainer (or a fork owner) run the desktop matrix — Ubuntu and
+  # Windows — without waiting for a push.
   workflow_dispatch:
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-22.04, macos-15, windows-2022]
+        platform: [ubuntu-22.04, windows-2022]
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tauriScript: bun tauri
-          # Verbose so a bundle_dmg.sh failure shows the script's output.
+          # Verbose so a bundling failure shows the script's output.
           args: --verbose
 
       - name: (Ubuntu only) Upload build artifacts
@@ -63,15 +63,6 @@ jobs:
           path: |
             target/release/bundle/deb/*.deb
             target/release/bundle/appimage/*.AppImage
-
-      - name: (macOS only) Upload build artifacts
-        if: matrix.platform == 'macos-15'
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-app-and-dmg
-          path: |
-            target/release/bundle/macos/Citadel.app
-            target/release/bundle/dmg/*.dmg
 
       - name: (Windows only) Upload build artifacts
         if: matrix.platform == 'windows-2022'
